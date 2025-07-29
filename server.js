@@ -13,25 +13,43 @@ app.use(express.static(path.join(__dirname, "public")));
 const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
 const COHERE_API_KEY = process.env.COHERE_API_KEY;
 
-// 1️⃣ Get English news by topic
-app.get("/news", async (req, res) => {
-  const query = req.query.q || "technology";
+// ✅ Fix node-fetch ESM issue using dynamic import
+const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
-  const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&max=5&token=${GNEWS_API_KEY}`;
+/**
+ * 1️⃣ News Route: Handles both search and top headlines
+ * If `q` is provided: Search by topic
+ * If `q` is empty: Show top headlines for that country
+ */
+app.get("/news", async (req, res) => {
+  const query = req.query.q;
+  const country = req.query.country || "us";
+
+  let url = "";
+
+  if (query) {
+    // Search for topic
+    url = `https://gnews.io/api/v4/search?q=${query}&country=${country}&lang=en&max=5&token=${GNEWS_API_KEY}`;
+  } else {
+    // Top headlines
+    url = `https://gnews.io/api/v4/top-headlines?country=${country}&lang=en&max=5&token=${GNEWS_API_KEY}`;
+  }
 
   try {
     const response = await fetch(url);
     const data = await response.json();
     res.json(data.articles);
   } catch (error) {
-    console.error("Fetch error:", error);
+    console.error("News fetch error:", error);
     res.status(500).json({ error: "Failed to fetch news" });
   }
 });
 
-// 2️⃣ Summarize in English (no translation)
+/**
+ * 2️⃣ Summarize News (in English only)
+ */
 app.post("/summarize", async (req, res) => {
-  const { content, lang } = req.body;
+  const { content } = req.body;
 
   try {
     const prompt = `Summarize this news article:\n\n${content}`;
@@ -40,7 +58,7 @@ app.post("/summarize", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.COHERE_API_KEY}`,
+        Authorization: `Bearer ${COHERE_API_KEY}`,
       },
       body: JSON.stringify({
         model: "command",
@@ -54,7 +72,6 @@ app.post("/summarize", async (req, res) => {
     const summary = data.generations?.[0]?.text?.trim() || "Summary unavailable";
 
     res.json({ summary });
-
   } catch (error) {
     console.error("Cohere generate error:", error);
     res.status(500).json({ error: "Summarization failed." });
@@ -63,3 +80,4 @@ app.post("/summarize", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🌐 Server running on port ${PORT}`));
+
