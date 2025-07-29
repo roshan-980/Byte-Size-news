@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🗞️ ByteSize News</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>🗞️ ByteSize News</h1>
+
+  <div class="controls">
+    <label for="topic">📰 Topic:</label>
+    <select id="topic">
+      <option value="technology">Technology</option>
+      <option value="sports">Sports</option>
+      <option value="business">Business</option>
+      <option value="health">Health</option>
+      <option value="science">Science</option>
+      <option value="world">World</option>
+    </select>
+    <button id="fetchNews" onclick="loadNews()">🔍 Get News</button>
+  </div>
+
+  <div id="news-container"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
