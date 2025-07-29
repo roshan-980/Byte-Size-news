@@ -2,26 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🗞️ ByteSize News</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🗞️ ByteSize News</h1>
+  <header>
+    <h1>🗞️ ByteSize News</h1>
+    <p>Smart, Summarized & Spoken News</p>
+  </header>
 
-  <div class="controls">
-    <label for="topic">📰 Topic:</label>
-    <select id="topic">
-      <option value="technology">Technology</option>
-      <option value="sports">Sports</option>
-      <option value="business">Business</option>
-      <option value="health">Health</option>
-      <option value="science">Science</option>
-      <option value="world">World</option>
-    </select>
+  <section class="controls">
+    <div class="control-group">
+      <label for="topic">📰 Topic:</label>
+      <select id="topic">
+        <option value="technology">Technology</option>
+        <option value="sports">Sports</option>
+        <option value="business">Business</option>
+        <option value="health">Health</option>
+        <option value="science">Science</option>
+        <option value="world">World</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="country">🌍 Country:</label>
+      <select id="country">
+        <option value="us">🇺🇸 USA</option>
+        <option value="in">🇮🇳 India</option>
+        <option value="gb">🇬🇧 UK</option>
+        <option value="au">🇦🇺 Australia</option>
+        <option value="ca">🇨🇦 Canada</option>
+      </select>
+    </div>
+
     <button id="fetchNews" onclick="loadNews()">🔍 Get News</button>
-  </div>
+  </section>
 
-  <div id="news-container"></div>
+  <main id="news-container">
+    <!-- News cards will appear here -->
+  </main>
+
+  <footer>
+    <p>© 2025 ByteSize News by Roshan Gupta</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>
