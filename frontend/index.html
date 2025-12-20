@@ -9,4 +9,69 @@
 <body>
     <script src="script.js"></script>
 </body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title> ByteSize News</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🗞️ ByteSize News</h1>
+    <p>Smart, Summarized & Spoken News</p>
+  </header>
+
+  <section class="controls">
+    <div class="control-group">
+      <label for="topic">📰 Topic:</label>
+      <select id="topic">
+        <option value="breaking-news">breaking-news</option>
+        <option value="world">world</option>
+        <option value="technology">Technology</option>
+        <option value="entertainment">entertainment</option>
+        <option value="sports">Sports</option>
+        <option value="business">Business</option>
+        <option value="health">Health</option>
+        <option value="science">Science</option>
+        <option value="world">World</option>
+        <!-- breaking-news, world, nation, business, technology, entertainment, sports, science, health -->
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="country">🌍 Country:</label>
+      <select id="country">
+        <option value="us">🇺🇸 USA</option>
+        <option value="in">🇮🇳 India</option>
+        <option value="gb">🇬🇧 UK</option>
+        <option value="au">🇦🇺 Australia</option>
+        <option value="ca">🇨🇦 Canada</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="Language">🌍 Language:</label>
+      <select id="Language">
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+        <option value="mr">Marathi</option>
+        <option value="pa">Punjabi</option>
+      </select>
+    </div>
+
+    <button id="fetchNews" >🔍 Get News</button>
+  </section>
+
+  <main id="news-container">
+    <!-- News cards will appear here -->
+  </main>
+
+  <footer>
+    <p>© 2025 ByteSize News by Roshan Gupta</p>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
 </html>
