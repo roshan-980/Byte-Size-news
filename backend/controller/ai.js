@@ -15,12 +15,13 @@ router.post("/", (req, res) => {
       messages: [
         {
           role: 'user',
-          content: 'Summarize the following article content in a concise paragraph:\n\n' + content,
+          content: 'Summarize the following article content in a concise paragraph of 2-3 lines  \n\n' + content,
         },
       ],
     });
     console.log("Cohere response:", response);
     console.log("summary is  " + response.message.content[0].text);
+    res.json({ summary: response.message.content[0].text });
   })();
 
 });
