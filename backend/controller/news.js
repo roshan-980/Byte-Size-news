@@ -6,9 +6,11 @@ console.log(" News route file loaded");
 console.log(" i am  from news file News API Key:", process.env.NEWS_API_KEY);
 // define the home page route
 router.get('/', async (req, res) => {
-    const topic = req.query.topic || 'technology'
+    const topic = req.query.topic || 'general'
     const country = req.query.country || 'us'
-    const url = `https://gnews.io/api/v4/top-headlines?topic=${topic}&lang=en&country=${country}&apikey=${process.env.NEWS_API_KEY}`;
+    const lang = req.query.lang || 'en'
+    console.log("Fetching news for Topic(from news.js):", topic, "Country:", country, "Language:", lang);
+    const url = `https://gnews.io/api/v4/top-headlines?topic=${topic}&lang=${lang}&country=${country}&apikey=${process.env.NEWS_API_KEY}`;
     try {
         const response = await fetch(url);
         const data = await response.json();
@@ -17,7 +19,7 @@ router.get('/', async (req, res) => {
             return res.status(500).json({ error: 'Invalid response from news API' });
         }
         console.log(data);
-        res.json(data);
+        res.json(data.articles);
     } catch (error) {
         console.log('Error fetching news:', error)
 
