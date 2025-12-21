@@ -1,7 +1,10 @@
 console.log("Script loaded successfully");
 async function fetchNews() {
     console.log(" i am from fetchNews function");
-    console.log(" i am working auto matically");
+    const topic =document.getElementById("topic").value ||"tech";
+    const country =document.getElementById("country").value||"us"
+    const lang =document.getElementById("Language").value ||"en";
+    console.log("Topic:", topic, "Country:", country, "Language:", lang);
     }
 fetchNews();
-console.log("Loaded at", Date.now());
+
