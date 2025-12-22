@@ -35,6 +35,7 @@ async function loadnews(topic, country, lang) {
             const listenBtn = card.querySelector(".listen-btn");
             const stopBtn = card.querySelector(".stop-btn");
             const summaryBox = card.querySelector(".summary");
+            // Summary feature
             summarizeBtn.addEventListener("click", async () => {
                 summaryBox.innerHTML = " Summarizing... <br>Please wait.";
                 const contentToSummarize = article.content || article.description || article.title;
@@ -51,7 +52,7 @@ async function loadnews(topic, country, lang) {
                 const summaryResult = await summarizeddata.json();
                 console.log("Summary result:", summaryResult);
                 summaryBox.innerHTML = summaryResult.summary || "No summary available.";
-
+                
 
             });
             container.append(card);
@@ -62,7 +63,6 @@ async function loadnews(topic, country, lang) {
         console.error("Error fetching news:", error);
     }
 }
-fetchNews();
 // auto calls for the first time when page loads
 async function fetchNews() {
     console.log(" i am from fetchNews function");
@@ -81,6 +81,7 @@ document.getElementById("fetchNews").addEventListener("click", () => {
     loadnews(topic, country, lang);
 
 })
+fetchNews();
 
 
 
