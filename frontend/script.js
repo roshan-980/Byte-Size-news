@@ -52,7 +52,27 @@ async function loadnews(topic, country, lang) {
                 const summaryResult = await summarizeddata.json();
                 console.log("Summary result:", summaryResult);
                 summaryBox.innerHTML = summaryResult.summary || "No summary available.";
-                
+                //write code for listen and stop button    
+                let isSpeaking = false;
+                listenBtn.disabled = false;
+                stopBtn.disabled = true;
+
+                listenBtn.addEventListener("click", () => {
+                    if (isSpeaking) return;
+                    isSpeaking = true;
+                    listenBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    const utterance = new SpeechSynthesisUtterance(summaryResult.summary);
+                    speechSynthesis.speak(utterance);
+                });
+
+                stopBtn.addEventListener("click", () => {
+                    if (!isSpeaking) return;
+                    isSpeaking = false;
+                    listenBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    speechSynthesis.cancel();
+                });
 
             });
             container.append(card);
