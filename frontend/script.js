@@ -1,4 +1,27 @@
 console.log("Script loaded successfully");
+let voices = [];
+let langsarr = [];
+function loadVoices() {
+    voices = speechSynthesis.getVoices();
+    console.log("Available voices:", voices);
+
+    voices.forEach((voice, index) => {
+        console.log(
+            index,
+            voice.name,
+            voice.lang,
+            voice.localService ? "Local" : "Remote"
+        );
+    });
+    voices.forEach(voice => {
+        langsarr.push(voice.lang);
+    });
+    console.log(langsarr);
+
+}
+// Chrome fires this when voices are ready
+speechSynthesis.onvoiceschanged = loadVoices;
+
 // i am in tts/feature branch 
 async function loadnews(topic, country, lang) {
     console.log(" i am from loadnews function");
@@ -12,6 +35,14 @@ async function loadnews(topic, country, lang) {
                 }
             }
         );
+        // doing lang check here !
+        let langmap = {
+            "en": "en-IN",
+            "hi": "hi-IN",
+            "mr": "mr-IN",
+            "pa": "pa-IN",
+        }
+        console.log("the langmap ", langmap[lang]);
         const articles = await getnews.json();
         console.log("success!");
         console.log(articles);
@@ -38,6 +69,7 @@ async function loadnews(topic, country, lang) {
             const summaryBox = card.querySelector(".summary");
             // Summary feature
             summarizeBtn.addEventListener("click", async () => {
+                speechSynthesis.cancel();
                 summaryBox.innerHTML = " Summarizing... <br>Please wait.";
                 const contentToSummarize = article.content || article.description || article.title;
                 console.log("Content to summarize:", contentToSummarize);
@@ -60,11 +92,17 @@ async function loadnews(topic, country, lang) {
 
                 listenBtn.addEventListener("click", () => {
                     if (isSpeaking) return;
-                    isSpeaking = true;
-                    listenBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    const utterance = new SpeechSynthesisUtterance(summaryResult.summary);
-                    speechSynthesis.speak(utterance);
+                    if (langsarr.includes(langmap[lang])) {
+                        isSpeaking = true;
+                        listenBtn.disabled = true;
+                        stopBtn.disabled = false;
+                        const utterance = new SpeechSynthesisUtterance(summaryResult.summary);
+                        utterance.lang = langmap[lang];
+                        speechSynthesis.speak(utterance);
+                    }
+                    else {
+                        console.log("Selected language voice not available. Using default voice.");
+                    }
                 });
 
                 stopBtn.addEventListener("click", () => {
@@ -87,6 +125,7 @@ async function loadnews(topic, country, lang) {
 // auto calls for the first time when page loads
 async function fetchNews() {
     console.log(" i am from fetchNews function");
+    speechSynthesis.cancel();
     const topic = document.getElementById("topic").value || "general";
     const country = document.getElementById("country").value || "in"
     const lang = document.getElementById("Language").value || "en";
@@ -95,6 +134,7 @@ async function fetchNews() {
 }
 // calls when user clicks the fetch button
 document.getElementById("fetchNews").addEventListener("click", () => {
+    speechSynthesis.cancel();
     const topic = document.getElementById("topic").value || "general";
     const country = document.getElementById("country").value || "in"
     const lang = document.getElementById("Language").value || "en";
