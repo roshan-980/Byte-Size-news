@@ -1,3 +1,4 @@
+// this is feature branch for tts
 console.log("Script loaded successfully");
 let voices = [];
 let langsarr = [];
@@ -89,29 +90,70 @@ async function loadnews(topic, country, lang) {
                 let isSpeaking = false;
                 listenBtn.disabled = false;
                 stopBtn.disabled = true;
+                let currentAudio = null;
 
-                listenBtn.addEventListener("click", () => {
+                listenBtn.addEventListener("click", async () => {
                     if (isSpeaking) return;
+                    isSpeaking = true;
+                    listenBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    // CASE 1: Local TTS
                     if (langsarr.includes(langmap[lang])) {
-                        isSpeaking = true;
-                        listenBtn.disabled = true;
-                        stopBtn.disabled = false;
                         const utterance = new SpeechSynthesisUtterance(summaryResult.summary);
                         utterance.lang = langmap[lang];
+                        utterance.onend = () => {
+                            isSpeaking = false;
+                            listenBtn.disabled = false;
+                            stopBtn.disabled = true;
+                        };
                         speechSynthesis.speak(utterance);
                     }
-                    else {
-                        console.log("Selected language voice not available. Using default voice.");
+                    // CASE 2: External TTS
+                    try {
+                        console.log("Using external TTS service");
+                        const res = await fetch("/tts", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                text: summaryResult.summary,
+                                voiceid: "JBFqnCBsd6RMkjVDRZzb"
+                            })
+                        });
+                        const audioBlob = await res.blob();
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        currentAudio = new Audio(audioUrl);
+                        currentAudio.onended = () => {
+                            isSpeaking = false;
+                            listenBtn.disabled = false;
+                            stopBtn.disabled = true;
+                            currentAudio = null;
+                        };
+
+                        currentAudio.play();
+
+                    } catch (err) {
+                        console.error("External TTS failed:", err);
+                        isSpeaking = false;
+                        listenBtn.disabled = false;
+                        stopBtn.disabled = true;
                     }
                 });
 
                 stopBtn.addEventListener("click", () => {
                     if (!isSpeaking) return;
+                    // Stop local TTS
+                    speechSynthesis.cancel();
+                    // Stop external TTS
+                    if (currentAudio) {
+                        currentAudio.pause();
+                        currentAudio.currentTime = 0;
+                        currentAudio = null;
+                    }
                     isSpeaking = false;
                     listenBtn.disabled = false;
                     stopBtn.disabled = true;
-                    speechSynthesis.cancel();
                 });
+
 
             });
             container.append(card);
