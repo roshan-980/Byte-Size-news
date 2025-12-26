@@ -1,4 +1,3 @@
-// this is feature branch for tts
 console.log("Script loaded successfully");
 let voices = [];
 let langsarr = [];
