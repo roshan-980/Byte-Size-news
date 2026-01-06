@@ -1,4 +1,70 @@
-console.log("Script loaded successfully");
+console.log("Script loaded");
+
+const news = document.getElementById("newsContainer");
+const modal = document.getElementById("authModal");
+const form = document.getElementById("authForm");
+const title = document.getElementById("formTitle");
+const subtitle = document.getElementById("formSubtitle");
+const button = form.querySelector("button");
+const toggleText = document.querySelector(".toggle-text");
+
+let isLogin = false; // false = signup, true = login
+
+// Blur background on load
+window.addEventListener("load", () => {
+  news.classList.add("blur-bg");
+  modal.style.display = "flex";
+});
+
+// Toggle Login / Signup
+function toggleForm() {
+  isLogin = !isLogin;
+
+  if (isLogin) {
+    title.innerText = "Login";
+    subtitle.innerText = "Welcome back! Please login";
+    button.innerText = "Login";
+    toggleText.innerHTML = `New here? <span onclick="toggleForm()">Create account</span>`;
+  } else {
+    title.innerText = "Sign Up";
+    subtitle.innerText = "Create your account to continue";
+    button.innerText = "Sign Up";
+    toggleText.innerHTML = `Already have an account? <span onclick="toggleForm()">Login</span>`;
+  }
+}
+
+// Form submit
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = form.querySelector('input[type="email"]').value.trim();
+  const password = form.querySelector('input[type="password"]').value.trim();
+
+  if (!email || !password) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  console.log(isLogin ? "LOGIN" : "SIGNUP", email, password);
+    const endpoint = isLogin ? "/auth/login" : "/auth/signup";
+    const response= await fetch(endpoint, {
+        method: "POST",
+        headers: {  "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    } );
+    const result = await response.json();
+    if(response.ok){
+        alert(result.message);  
+        // Close modal on success
+        modal.style.display = "none";
+        news.classList.remove("blur-bg");
+    }
+    else{
+        alert(result.message);   
+    }   
+});
+
+
 let voices = [];
 let langsarr = [];
 function loadVoices() {
