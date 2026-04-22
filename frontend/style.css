@@ -34,7 +34,15 @@
   margin-bottom: 5px;
   font-size: 26px;
 }
+#passwordRules li {
+  list-style: none;
+  margin: 4px 0;
+  color: red;
+}
 
+#passwordRules li.valid {
+  color: lightgreen;
+}
 /* Subtitle */
 .form-subtitle {
   font-size: 14px;

@@ -1,5 +1,4 @@
 console.log("Script loaded");
-
 const news = document.getElementById("newsContainer");
 const modal = document.getElementById("authModal");
 const form = document.getElementById("authForm");
@@ -8,60 +7,110 @@ const subtitle = document.getElementById("formSubtitle");
 const button = form.querySelector("button");
 const toggleText = document.querySelector(".toggle-text");
 
-let isLogin = false; // false = signup, true = login
+let isLogin = false;
+// false = signup, true = login
 
 // Blur background on load
 window.addEventListener("load", () => {
-  news.classList.add("blur-bg");
-  modal.style.display = "flex";
+    news.classList.add("blur-bg");
+    modal.style.display = "flex";
 });
 
+const passwordInput = form.querySelector('input[type="password"]');
+const ruleLength = document.getElementById("rule-length");
+const ruleUpper = document.getElementById("rule-uppercase");
+const ruleNumber = document.getElementById("rule-number");
+
+passwordInput.addEventListener("input", () => {
+    if (isLogin) return;
+    const str = passwordInput.value;
+
+    const isLengthValid = str.length >= 8;
+    const hasUppercase = /[A-Z]/.test(str);
+    const hasNumber = /[0-9]/.test(str);
+
+    // Length UI
+    if (isLengthValid) {
+        ruleLength.textContent = "✔ At least 8 characters";
+        ruleLength.classList.add("valid");
+    } else {
+        ruleLength.textContent = "❌ At least 8 characters";
+        ruleLength.classList.remove("valid");
+    }
+
+    // Uppercase UI
+    if (hasUppercase) {
+        ruleUpper.textContent = "✔ One uppercase letter";
+        ruleUpper.classList.add("valid");
+    } else {
+        ruleUpper.textContent = "❌ One uppercase letter";
+        ruleUpper.classList.remove("valid");
+    }
+
+    // Number UI
+    if (hasNumber) {
+        ruleNumber.textContent = "✔ One number";
+        ruleNumber.classList.add("valid");
+    } else {
+        ruleNumber.textContent = "❌ One number";
+        ruleNumber.classList.remove("valid");
+    }
+});
 // Toggle Login / Signup
 function toggleForm() {
-  isLogin = !isLogin;
+    isLogin = !isLogin;
 
-  if (isLogin) {
-    title.innerText = "Login";
-    subtitle.innerText = "Welcome back! Please login";
-    button.innerText = "Login";
-    toggleText.innerHTML = `New here? <span onclick="toggleForm()">Create account</span>`;
-  } else {
-    title.innerText = "Sign Up";
-    subtitle.innerText = "Create your account to continue";
-    button.innerText = "Sign Up";
-    toggleText.innerHTML = `Already have an account? <span onclick="toggleForm()">Login</span>`;
-  }
+    if (isLogin) {
+        title.innerText = "Login";
+        subtitle.innerText = "Welcome back! Please login";
+        button.innerText = "Login";
+        toggleText.innerHTML = `New here? <span onclick="toggleForm()">Create account</span>`;
+        passwordRules.style.display = "none";
+    } else {
+        title.innerText = "Sign Up";
+        subtitle.innerText = "Create your account to continue";
+        button.innerText = "Sign Up";
+        toggleText.innerHTML = `Already have an account? <span onclick="toggleForm()">Login</span>`;
+        passwordRules.style.display = "block";
+    }
 }
 
 // Form submit
 form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    const email = form.querySelector('input[type="email"]').value.trim();
+    let password = form.querySelector('input[type="password"]').value.trim();
+    if (!email || !password) {
+        alert("Please fill all fields");
+        return;
+    }
+    if (!isLogin) {
+        const isLengthValid = password.length >= 8;
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        if (!isLengthValid || !hasUppercase || !hasNumber) {
+            alert("Password does not meet requirements");
+            return;
+        }
+    }
 
-  const email = form.querySelector('input[type="email"]').value.trim();
-  const password = form.querySelector('input[type="password"]').value.trim();
-
-  if (!email || !password) {
-    alert("Please fill all fields");
-    return;
-  }
-
-  console.log(isLogin ? "LOGIN" : "SIGNUP", email, password);
+    console.log(isLogin ? "LOGIN" : "SIGNUP", email, password);
     const endpoint = isLogin ? "/auth/login" : "/auth/signup";
-    const response= await fetch(endpoint, {
+    const response = await fetch(endpoint, {
         method: "POST",
-        headers: {  "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
-    } );
+    });
     const result = await response.json();
-    if(response.ok){
-        alert(result.message);  
+    if (response.ok) {
+        alert(result.message);
         // Close modal on success
         modal.style.display = "none";
         news.classList.remove("blur-bg");
     }
-    else{
-        alert(result.message);   
-    }   
+    else {
+        alert(result.message);
+    }
 });
 
 
