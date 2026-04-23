@@ -1,100 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title> ByteSize News</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-<!-- Signup / Login Modal -->
-<div class="auth-modal" id="authModal">
-  <div class="auth-box">
+  <!-- Signup / Login Modal -->
+  <div class="auth-modal" id="authModal">
+    <div class="auth-box">
 
-    <h2 id="formTitle">Sign Up</h2>
-    <p class="form-subtitle" id="formSubtitle">
-      Create your account to continue
-    </p>
+      <h2 id="formTitle">Sign Up</h2>
+      <p class="form-subtitle" id="formSubtitle">
+        Create your account to continue
+      </p>
 
-    <form id="authForm">
-      <input type="email" placeholder="Email address" required>
-      <input type="password" placeholder="Password" required>
-      <ul id="passwordRules" style="text-align:left; font-size:14px; margin-bottom:10px;">
-  <li id="rule-length">❌ At least 8 characters</li>
-  <li id="rule-uppercase">❌ One uppercase letter</li>
-  <li id="rule-number">❌ One number</li>
-</ul>
-      <button type="submit">Sign Up</button>
-    </form>
+      <form id="authForm">
+        <input type="email" id="email" placeholder="Email address" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <ul id="passwordRules" style="text-align:left; font-size:14px; margin-bottom:10px;">
+          <li id="rule-length">❌ At least 8 characters</li>
+          <li id="rule-uppercase">❌ One uppercase letter</li>
+          <li id="rule-number">❌ One number</li>
+        </ul>
+        <button class="submit-btn" type="submit">Sign Up</button>
+      </form>
+      <div id="otpSection" style="display:none;">
+        <input type="text" id="otpInput" placeholder="Enter OTP" required>
+        <button id="verifyOtp">Verify OTP</button>
+      </div>
 
-    <!-- TOGGLE TEXT -->
-    <p class="toggle-text">
-      Already have an account?
-      <span onclick="toggleForm()">Login</span>
-    </p>
+      <!-- TOGGLE TEXT -->
+      <p class="toggle-text">
+        Already have an account?
+        <span onclick="toggleForm()">Login</span>
+      </p>
 
+      <p id="forgotPassword" style="display:none; cursor:pointer; font-size:14px;">
+        Forgot Password?
+      </p>
+
+    </div>
   </div>
-</div>
 
 
-<div id="newsContainer">
-  <header>
-    <h1>🗞️ ByteSize News</h1>
-    <p>Smart, Summarized & Spoken News</p>
-  </header>
+  <div id="newsContainer">
+    <header>
+      <h1>🗞️ ByteSize News</h1>
+      <p>Smart, Summarized & Spoken News</p>
+    </header>
 
-  <section class="controls">
-    <div class="control-group">
-      <label for="topic">📰 Topic:</label>
-      <select id="topic">
-        <option value=""disabled selected>-- Select Topic --</option>
-        <option value="breaking-news">breaking-news</option>
-        <option value="world">world</option>
-        <option value="technology">Technology</option>
-        <option value="entertainment">entertainment</option>
-        <option value="sports">Sports</option>
-        <option value="business">Business</option>
-        <option value="health">Health</option>
-        <option value="science">Science</option>
-        <option value="world">World</option>
-        <!-- breaking-news, world, nation, business, technology, entertainment, sports, science, health -->
-      </select>
-    </div>
+    <section class="controls">
+      <div class="control-group">
+        <label for="topic">📰 Topic:</label>
+        <select id="topic">
+          <option value="" disabled selected>-- Select Topic --</option>
+          <option value="breaking-news">breaking-news</option>
+          <option value="world">world</option>
+          <option value="technology">Technology</option>
+          <option value="entertainment">entertainment</option>
+          <option value="sports">Sports</option>
+          <option value="business">Business</option>
+          <option value="health">Health</option>
+          <option value="science">Science</option>
+          <option value="world">World</option>
+          <!-- breaking-news, world, nation, business, technology, entertainment, sports, science, health -->
+        </select>
+      </div>
 
-    <div class="control-group">
-      <label for="country">🌍 Country:</label>
-      <select id="country">
-        <option value="" disabled hidden>-- Select Country --</option>
-        <option value="us">🇺🇸 USA</option>
-        <option value="in">🇮🇳 India</option>
-        <option value="gb">🇬🇧 UK</option>
-        <option value="au">🇦🇺 Australia</option>
-        <option value="ca">🇨🇦 Canada</option>
-      </select>
-    </div>
+      <div class="control-group">
+        <label for="country">🌍 Country:</label>
+        <select id="country">
+          <option value="" disabled hidden>-- Select Country --</option>
+          <option value="us">🇺🇸 USA</option>
+          <option value="in">🇮🇳 India</option>
+          <option value="gb">🇬🇧 UK</option>
+          <option value="au">🇦🇺 Australia</option>
+          <option value="ca">🇨🇦 Canada</option>
+        </select>
+      </div>
 
-    <div class="control-group">
-      <label for="Language">🌍 Language:</label>
-      <select id="Language">
-        <option value="en">English</option>
-        <option value="hi">Hindi</option>
-        <option value="mr">Marathi</option>
-        <option value="pa">Punjabi</option>
-      </select>
-    </div>
+      <div class="control-group">
+        <label for="Language">🌍 Language:</label>
+        <select id="Language">
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="mr">Marathi</option>
+          <option value="pa">Punjabi</option>
+        </select>
+      </div>
 
-    <button id="fetchNews" >🔍 Get News</button>
-  </section>
+      <button id="fetchNews">🔍 Get News</button>
+    </section>
 
-  <main id="news-container">
-    <!-- News cards will appear here -->
-  </main>
+    <main id="news-container">
+      <!-- News cards will appear here -->
+    </main>
 
-  <footer>
-    <p>© 2025 ByteSize News by Roshan Gupta</p>
-  </footer>
+    <footer>
+      <p>© 2025 ByteSize News by Roshan Gupta</p>
+    </footer>
 
   </div>
   <script src="script.js" defer></script>
 </body>
+
 </html>

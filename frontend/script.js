@@ -5,9 +5,13 @@ const form = document.getElementById("authForm");
 const title = document.getElementById("formTitle");
 const subtitle = document.getElementById("formSubtitle");
 const button = form.querySelector("button");
+const btn = form.querySelector(".submit-btn");
 const toggleText = document.querySelector(".toggle-text");
-
+let currentStep = "form"; // "form" | "otp"
+let tempEmail = "";
+let tempPassword = "";
 let isLogin = false;
+
 // false = signup, true = login
 
 // Blur background on load
@@ -56,6 +60,51 @@ passwordInput.addEventListener("input", () => {
         ruleNumber.classList.remove("valid");
     }
 });
+
+// otp verfication
+document.getElementById("verifyOtp").addEventListener("click", async () => {
+    const otp = document.getElementById("otpInput").value.trim();
+
+    if (!otp) {
+        alert("Enter OTP");
+        return;
+    }
+
+    // verify OTP
+    const otp_response = await fetch("/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: tempEmail, otp })
+    });
+
+    const otp_result = await otp_response.json();
+
+    if (!otp_response.ok) {
+        alert(otp_result.message || "OTP verification failed");
+        return;
+    }
+
+    // OTP SUCCESS → NOW SIGNUP
+    const response = await fetch("/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: tempEmail, password: tempPassword })
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+        alert(result.message);
+        modal.style.display = "none";
+        news.classList.remove("blur-bg");
+
+        currentStep = "form"; // reset
+    } else {
+        alert(result.message);
+    }
+    currentStep = "form";
+});
+
 // Toggle Login / Signup
 function toggleForm() {
     isLogin = !isLogin;
@@ -66,6 +115,7 @@ function toggleForm() {
         button.innerText = "Login";
         toggleText.innerHTML = `New here? <span onclick="toggleForm()">Create account</span>`;
         passwordRules.style.display = "none";
+        document.getElementById("otpSection").style.display = "none";
     } else {
         title.innerText = "Sign Up";
         subtitle.innerText = "Create your account to continue";
@@ -78,38 +128,102 @@ function toggleForm() {
 // Form submit
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const email = form.querySelector('input[type="email"]').value.trim();
-    let password = form.querySelector('input[type="password"]').value.trim();
+    const password = form.querySelector('input[type="password"]').value.trim();
+
+    // VALIDATION
     if (!email || !password) {
         alert("Please fill all fields");
         return;
     }
-    if (!isLogin) {
-        const isLengthValid = password.length >= 8;
-        const hasUppercase = /[A-Z]/.test(password);
-        const hasNumber = /[0-9]/.test(password);
-        if (!isLengthValid || !hasUppercase || !hasNumber) {
-            alert("Password does not meet requirements");
+
+    // DISABLE BUTTON AFTER VALIDATION
+    btn.disabled = true;
+    btn.innerText = isLogin ? "Logging in..." : "Sending OTP...";
+
+    try {
+
+        // ================= LOGIN FLOW =================
+        if (isLogin) {
+            const response = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message);
+                modal.style.display = "none";
+                news.classList.remove("blur-bg");
+
+                // optional safety reset
+                btn.disabled = false;
+                btn.innerText = "Login";
+            } else {
+                btn.disabled = false;
+                btn.innerText = "Login";
+                alert(result.message);
+            }
+
             return;
         }
-    }
 
-    console.log(isLogin ? "LOGIN" : "SIGNUP", email, password);
-    const endpoint = isLogin ? "/auth/login" : "/auth/signup";
-    const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-    });
-    const result = await response.json();
-    if (response.ok) {
-        alert(result.message);
-        // Close modal on success
-        modal.style.display = "none";
-        news.classList.remove("blur-bg");
-    }
-    else {
-        alert(result.message);
+        // ================= SIGNUP FLOW =================
+
+        if (currentStep === "form") {
+
+            const isLengthValid = password.length >= 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+
+            if (!isLengthValid || !hasUppercase || !hasNumber) {
+                alert("Password does not meet requirements");
+                btn.disabled = false;
+                btn.innerText = "Sign Up";
+                return;
+            }
+
+            // store temporarily
+            tempEmail = email;
+            tempPassword = password;
+
+            const response = await fetch("/otp/gen", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                alert(result.message || "Failed to send OTP");
+                btn.disabled = false;
+                btn.innerText = "Sign Up";
+                return;
+            }
+
+            console.log("OTP generated and sent to email");
+
+            // SHOW OTP UI
+            document.getElementById("otpSection").style.display = "block";
+
+            // KEEP BUTTON DISABLED AFTER OTP (important)
+            btn.innerText = "OTP Sent";
+
+            currentStep = "otp";
+            return;
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Something went wrong");
+
+        // ALWAYS RE-ENABLE ON ERROR
+        btn.disabled = false;
+        btn.innerText = isLogin ? "Login" : "Sign Up";
     }
 });
 

@@ -2,26 +2,11 @@ const express =require('express');
 const jwt = require('jsonwebtoken');
 // const cookieParser = require ('cookie-parser');
 const router = express.Router()
-const  User = require("../model/bytesizedata.js"); ;
+const  User = require("../model/bytesizedata.js"); 
 const bcrypt = require("bcrypt");
 const app = express();
 app.use(express.json());
-
-// Connect to MongoDB
-const mongoose = require("mongoose");
-async function connectDB() {
-  try {
-    await mongoose.connect("mongodb://localhost:27017/ByteSizeDB");
-    console.log("MongoDB connected");
-  } catch (err) {
-    console.error("MongoDB connection failed", err);
-  }
-}
-
-connectDB();
-
 console.log(" Auth route file loaded");
-
 // define the home page route
 router.post('/login', async(req, res) => {
      console.log("Login endpoint hit");
