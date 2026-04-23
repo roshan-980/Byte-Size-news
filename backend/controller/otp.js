@@ -11,6 +11,7 @@ console.log("API Key for gmail : " + process.env.OTP_SEND_API_KEY);
 console.log("from otp file");
 router.post('/gen', async (req, res) => {
     const { email } = req.body;
+    await Otpdata.deleteMany({ email });
     let verify_email = await User.findOne({ email: email });
     if (verify_email) {
         return res.status(400).json({ message: "User already exists" });
@@ -55,6 +56,54 @@ router.post('/gen', async (req, res) => {
     }
 
 });
+router.post('/gen_forgetpw', async (req, res) => {
+    const { email } = req.body;
+    await Otpdata.deleteMany({ email });
+    let verify_email = await User.findOne({ email: email });
+    if (!verify_email) {
+        return res.status(400).json({ message: "User doesn't exist" });
+    }
+    // gen otp
+    const otp = Math.floor(Math.random() * (9999 - 1001 + 1)) + 1001;
+    try {
+        // save otp to db
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(otp.toString(), salt);
+        await Otpdata.create({ email, otp: hash });
+        console.log("Generated OTP for ", email, " is ", otp);
+        console.log("API Key for gmail : " + process.env.OTP_SEND_API_KEY);
+        let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'playerpro9800@gmail.com',
+                pass: process.env.OTP_SEND_API_KEY
+            }
+        });
+
+        let mailOptions = {
+            from: 'playerpro9800@gmail.com',
+            to: email,
+            subject: 'Sending Email using Node.js',
+            text: `Your OTP is: ${otp}`
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+                return res.status(500).json({ message: "Error sending OTP email" });
+            } else {
+                console.log('Email sent: ' + info.response);
+                return res.status(200).json({ message: "OTP sent successfully" });
+            }
+        });
+    }
+    catch (err) {
+        console.error("Error generating OTP: ", err);
+        res.status(500).json({ message: "Error generating OTP" });
+    }
+
+});
+
 router.post('/verify', async (req, res) => {
     const { email, otp } = req.body;
     let verify_email = await Otpdata.findOne({ email: email });

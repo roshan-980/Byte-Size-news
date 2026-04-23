@@ -61,6 +61,20 @@ passwordInput.addEventListener("input", () => {
     }
 });
 
+function forgotPassword() {
+    // hide normal auth form
+    document.getElementById("authForm").style.display = "none";
+    document.getElementById("otpSection").style.display = "none";
+
+    // show forgot password section
+    document.getElementById("forgotSection").style.display = "block";
+
+    // update title
+    document.getElementById("formTitle").innerText = "Reset Password";
+    document.getElementById("formSubtitle").innerText = "Enter your email to continue";
+}
+let temp = null;
+let isOtpVerified = false;
 // otp verfication
 document.getElementById("verifyOtp").addEventListener("click", async () => {
     const otp = document.getElementById("otpInput").value.trim();
@@ -105,16 +119,126 @@ document.getElementById("verifyOtp").addEventListener("click", async () => {
     currentStep = "form";
 });
 
+// forgot password
+
+
+// Generate OTP
+document.querySelector(".reset-password").addEventListener("click", async () => {
+    const email = document.getElementById("resetEmail").value.trim();
+    temp = email;
+
+    if (!email) {
+        alert("Enter email");
+        return;
+    }
+
+    const gen_otp = await fetch("/otp/gen_forgetpw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+    });
+
+    const gen_result = await gen_otp.json();
+
+    if (!gen_otp.ok) {
+        alert(gen_result.message || "Failed to send OTP");
+        return;
+    }
+
+    alert("OTP sent!");
+    document.getElementById("fp-email").style.display = "none";
+    document.getElementById("fp-otp").style.display = "block";
+});
+
+
+// Verify OTP
+document.querySelector(".verify_otp").addEventListener("click", async () => {
+    if (!temp) {
+        alert("Please enter email and generate OTP first");
+        return;
+    }
+
+    const otp = document.getElementById("resetOtp").value.trim();
+
+    if (!otp) {
+        alert("Enter OTP");
+        return;
+    }
+
+    const otp_response = await fetch("/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: temp, otp })
+    });
+
+    const otp_result = await otp_response.json();
+
+    if (!otp_response.ok) {
+        alert(otp_result.message || "OTP verification failed");
+        return;
+    }
+
+    isOtpVerified = true;
+    alert("OTP verified!");
+    document.getElementById("fp-otp").style.display = "none";
+    document.getElementById("fp-password").style.display = "block";
+});
+
+
+// Reset Password
+document.querySelector(".reset_password").addEventListener("click", async () => {
+    if (!isOtpVerified) {
+        alert("Verify OTP first");
+        return;
+    }
+
+    const newPassword = document.getElementById("newPassword").value.trim();
+
+    if (!newPassword) {
+        alert("Please enter new password");
+        return;
+    }
+
+    const isLengthValid = newPassword.length >= 8;
+    const hasUppercase = /[A-Z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+
+    if (!isLengthValid || !hasUppercase || !hasNumber) {
+        alert("Password must be 8+ chars, include uppercase & number");
+        return;
+    }
+
+    const response = await fetch("/auth/reset_password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: temp, newPassword })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        alert(result.message || "Reset failed");
+        return;
+    }
+
+    alert("Password reset successful!");
+    window.location.href = "http://localhost:5000/";
+});
 // Toggle Login / Signup
 function toggleForm() {
     isLogin = !isLogin;
-
+    document.getElementById("forgotSection").style.display = "none";
+    document.getElementById("fp-email").style.display = "block";
+    document.getElementById("fp-otp").style.display = "none";
+    document.getElementById("fp-password").style.display = "none";
+    document.getElementById("authForm").style.display = "block";
     if (isLogin) {
         title.innerText = "Login";
         subtitle.innerText = "Welcome back! Please login";
         button.innerText = "Login";
         toggleText.innerHTML = `New here? <span onclick="toggleForm()">Create account</span>`;
         passwordRules.style.display = "none";
+        document.getElementById("forgotPassword").style.display = "block";
         document.getElementById("otpSection").style.display = "none";
     } else {
         title.innerText = "Sign Up";

@@ -32,14 +32,34 @@
         <input type="text" id="otpInput" placeholder="Enter OTP" required>
         <button id="verifyOtp">Verify OTP</button>
       </div>
+      <div id="forgotSection" style="display:none;">
 
+        <!-- Step 1: Email -->
+        <div id="fp-email">
+          <input type="email" id="resetEmail" placeholder="Enter your email">
+          <button class="reset-password">Send OTP</button>
+        </div>
+
+        <!-- Step 2: OTP -->
+        <div id="fp-otp" style="display:none;">
+          <input type="text" id="resetOtp" placeholder="Enter OTP">
+          <button class="verify_otp">Verify OTP</button>
+        </div>
+
+        <!-- Step 3: New Password -->
+        <div id="fp-password" style="display:none;">
+          <input type="password" id="newPassword" placeholder="New Password">
+          <button class="reset_password">Reset Password</button>
+        </div>
+
+      </div>
       <!-- TOGGLE TEXT -->
       <p class="toggle-text">
         Already have an account?
         <span onclick="toggleForm()">Login</span>
       </p>
 
-      <p id="forgotPassword" style="display:none; cursor:pointer; font-size:14px;">
+      <p id="forgotPassword" onclick="forgotPassword()" style="display:none; cursor:pointer; font-size:14px;">
         Forgot Password?
       </p>
 

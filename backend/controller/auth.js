@@ -52,4 +52,26 @@ router.post('/signup', async(req, res) => {
     });
 })
 
+router.post('/reset_password', async(req, res) => {
+    console.log("Reset password endpoint hit");
+    const { email, newPassword } = req.body;
+    const user = await User.findOne({ email: email });
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    const saltRounds = 10;
+    bcrypt.genSalt(saltRounds, function (err, salt) {
+        bcrypt.hash(newPassword, salt, async function (err, hash) {
+            try {
+                await User.updateOne({ email: email }, { password: hash });
+                res.status(200).json({ message: "Password reset successful" });
+            } catch (err) {
+                console.error("Error during password reset:", err);
+                res.status(500).json({ message: "Internal server error" });
+            }
+        });
+    });
+
+})
+
 module.exports = router
