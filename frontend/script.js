@@ -14,6 +14,8 @@ let currentStep = "form";
 let tempEmail = "";
 let tempPassword = "";
 let isLogin = false;
+let temp = null;
+let isOtpVerified = false;
 
 // ================= TTS SETUP =================
 let voices = [];
@@ -32,17 +34,64 @@ const langmap = {
     "pa": "pa-IN",
 };
 
+// ================= MODAL HELPERS =================
+function resetModal() {
+    // Reset state flags
+    isLogin = false;
+    currentStep = "form";
+    tempEmail = "";
+    tempPassword = "";
+    temp = null;
+    isOtpVerified = false;
+
+    // Reset form fields
+    form.reset();
+    document.getElementById("otpInput").value = "";
+    document.getElementById("resetEmail").value = "";
+    document.getElementById("resetOtp").value = "";
+    document.getElementById("newPassword").value = "";
+
+    // Reset password rule indicators
+    ruleLength.textContent = "❌ At least 8 characters";
+    ruleUpper.textContent = "❌ One uppercase letter";
+    ruleNumber.textContent = "❌ One number";
+    ruleLength.classList.remove("valid");
+    ruleUpper.classList.remove("valid");
+    ruleNumber.classList.remove("valid");
+
+    // Reset sections visibility
+    document.getElementById("authForm").style.display = "block";
+    document.getElementById("otpSection").style.display = "none";
+    document.getElementById("forgotSection").style.display = "none";
+    document.getElementById("fp-email").style.display = "block";
+    document.getElementById("fp-otp").style.display = "none";
+    document.getElementById("fp-password").style.display = "none";
+
+    // Reset to Sign Up state
+    title.innerText = "Sign Up";
+    subtitle.innerText = "Create your account to continue";
+    btn.innerText = "Sign Up";
+    btn.disabled = false;
+    toggleText.innerHTML = `Already have an account? <span onclick="toggleForm()">Login</span>`;
+    passwordRules.style.display = "flex";
+    document.getElementById("forgotPassword").style.display = "none";
+}
+
+function closeModal() {
+    modal.style.display = "none";
+    news.classList.remove("blur-bg");
+    resetModal();
+}
+
 // ================= LOGIN MODAL =================
 document.getElementById("loginBtn").addEventListener("click", () => {
+    resetModal();
     modal.style.display = "flex";
     news.classList.add("blur-bg");
 });
 
 modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-        modal.style.display = "none";
-        news.classList.remove("blur-bg");
-    }
+    if (e.target === modal) closeModal();
 });
 
 // ================= PASSWORD VALIDATION =================
@@ -77,9 +126,6 @@ function forgotPassword() {
     title.innerText = "Reset Password";
     subtitle.innerText = "Enter your email to continue";
 }
-
-let temp = null;
-let isOtpVerified = false;
 
 document.querySelector(".reset-password").addEventListener("click", async () => {
     const email = document.getElementById("resetEmail").value.trim();
@@ -160,9 +206,7 @@ document.getElementById("verifyOtp").addEventListener("click", async () => {
 
     if (signup.ok) {
         alert(result.message);
-        modal.style.display = "none";
-        news.classList.remove("blur-bg");
-        currentStep = "form";
+        closeModal();
     } else {
         alert(result.message);
     }
@@ -212,8 +256,7 @@ form.addEventListener("submit", async (e) => {
         const data = await res.json();
         if (res.ok) {
             alert(data.message);
-            modal.style.display = "none";
-            news.classList.remove("blur-bg");
+            closeModal();
         } else {
             alert(data.message);
         }
