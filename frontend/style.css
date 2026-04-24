@@ -358,6 +358,35 @@ body {
 
 .summary:empty { display: none; }
 
+/* TTS Controls */
+.tts-controls {
+  display: flex; gap: 8px; margin-top: 12px;
+}
+
+.listen-btn, .stop-btn {
+  padding: 6px 14px; border-radius: 999px;
+  font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600;
+  cursor: pointer; transition: all var(--t); border: 1.5px solid;
+}
+
+.listen-btn {
+  border-color: var(--success); color: var(--success); background: transparent;
+}
+.listen-btn:hover:not(:disabled) {
+  background: var(--success); color: #fff;
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.25);
+}
+
+.stop-btn {
+  border-color: var(--danger); color: var(--danger); background: transparent;
+}
+.stop-btn:hover:not(:disabled) {
+  background: var(--danger); color: #fff;
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
+}
+
+.listen-btn:disabled, .stop-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* Loading state */
 .news-card.loading h3 { height: 20px; background: var(--surface-3); border-radius: 4px; margin-bottom: 12px; width: 80%; }
 .news-card.loading p { height: 14px; background: var(--surface-3); border-radius: 4px; }

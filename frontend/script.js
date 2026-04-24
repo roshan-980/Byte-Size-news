@@ -8,12 +8,29 @@ const subtitle = document.getElementById("formSubtitle");
 const button = form.querySelector("button");
 const btn = form.querySelector(".submit-btn");
 const toggleText = document.querySelector(".toggle-text");
-const passwordRules = document.getElementById("passwordRules");  // fixed: was undeclared
+const passwordRules = document.getElementById("passwordRules");
 
 let currentStep = "form";
 let tempEmail = "";
 let tempPassword = "";
 let isLogin = false;
+
+// ================= TTS SETUP =================
+let voices = [];
+let langsarr = [];
+
+function loadVoices() {
+    voices = speechSynthesis.getVoices();
+    voices.forEach(voice => langsarr.push(voice.lang));
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+
+const langmap = {
+    "en": "en-IN",
+    "hi": "hi-IN",
+    "mr": "mr-IN",
+    "pa": "pa-IN",
+};
 
 // ================= LOGIN MODAL =================
 document.getElementById("loginBtn").addEventListener("click", () => {
@@ -21,7 +38,6 @@ document.getElementById("loginBtn").addEventListener("click", () => {
     news.classList.add("blur-bg");
 });
 
-// Close modal on overlay click
 modal.addEventListener("click", (e) => {
     if (e.target === modal) {
         modal.style.display = "none";
@@ -39,7 +55,6 @@ passwordInput.addEventListener("input", () => {
     if (isLogin) return;
 
     const str = passwordInput.value;
-
     const isLengthValid = str.length >= 8;
     const hasUppercase = /[A-Z]/.test(str);
     const hasNumber = /[0-9]/.test(str);
@@ -66,11 +81,9 @@ function forgotPassword() {
 let temp = null;
 let isOtpVerified = false;
 
-// Generate OTP (forgot password)
 document.querySelector(".reset-password").addEventListener("click", async () => {
     const email = document.getElementById("resetEmail").value.trim();
     temp = email;
-
     if (!email) return alert("Enter email");
 
     const res = await fetch("/otp/gen_forgetpw", {
@@ -78,9 +91,7 @@ document.querySelector(".reset-password").addEventListener("click", async () => 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
     });
-
     const data = await res.json();
-
     if (!res.ok) return alert(data.message || "Failed");
 
     alert("OTP sent!");
@@ -88,10 +99,8 @@ document.querySelector(".reset-password").addEventListener("click", async () => 
     document.getElementById("fp-otp").style.display = "block";
 });
 
-// Verify OTP (forgot password)
 document.querySelector(".verify_otp").addEventListener("click", async () => {
     if (!temp) return alert("Generate OTP first");
-
     const otp = document.getElementById("resetOtp").value.trim();
     if (!otp) return alert("Enter OTP");
 
@@ -100,22 +109,17 @@ document.querySelector(".verify_otp").addEventListener("click", async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: temp, otp })
     });
-
     const data = await res.json();
-
     if (!res.ok) return alert(data.message);
 
     isOtpVerified = true;
     alert("OTP verified!");
-
     document.getElementById("fp-otp").style.display = "none";
     document.getElementById("fp-password").style.display = "block";
 });
 
-// Reset password
 document.querySelector(".reset_password").addEventListener("click", async () => {
     if (!isOtpVerified) return alert("Verify OTP first");
-
     const newPassword = document.getElementById("newPassword").value.trim();
     if (!newPassword) return alert("Enter password");
 
@@ -127,9 +131,7 @@ document.querySelector(".reset_password").addEventListener("click", async () => 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: temp, newPassword })
     });
-
     const data = await res.json();
-
     if (!res.ok) return alert(data.message);
 
     alert("Password reset successful!");
@@ -146,7 +148,6 @@ document.getElementById("verifyOtp").addEventListener("click", async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: tempEmail, otp })
     });
-
     const data = await res.json();
     if (!res.ok) return alert(data.message);
 
@@ -155,7 +156,6 @@ document.getElementById("verifyOtp").addEventListener("click", async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: tempEmail, password: tempPassword })
     });
-
     const result = await signup.json();
 
     if (signup.ok) {
@@ -199,7 +199,6 @@ form.addEventListener("submit", async (e) => {
 
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
-
     if (!email || !password) return alert("Fill all fields");
 
     btn.disabled = true;
@@ -210,9 +209,7 @@ form.addEventListener("submit", async (e) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })
         });
-
         const data = await res.json();
-
         if (res.ok) {
             alert(data.message);
             modal.style.display = "none";
@@ -220,12 +217,10 @@ form.addEventListener("submit", async (e) => {
         } else {
             alert(data.message);
         }
-
         btn.disabled = false;
         return;
     }
 
-    // signup flow
     tempEmail = email;
     tempPassword = password;
 
@@ -234,7 +229,6 @@ form.addEventListener("submit", async (e) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
     });
-
     const data = await res.json();
 
     if (!res.ok) {
@@ -263,11 +257,9 @@ const topicMap = {
 
 document.getElementById("searchBtn").addEventListener("click", () => {
     speechSynthesis.cancel();
-
     const input = document.getElementById("searchInput").value.toLowerCase().trim();
     const topic = topicMap[input] || "breaking-news";
     const lang = document.getElementById("Language").value || "en";
-
     loadnews(topic, "in", lang);
 });
 
@@ -275,7 +267,6 @@ document.getElementById("searchInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") document.getElementById("searchBtn").click();
 });
 
-// Quick chip search
 function quickSearch(topic) {
     document.getElementById("searchInput").value = topic;
     const lang = document.getElementById("Language").value || "en";
@@ -284,10 +275,11 @@ function quickSearch(topic) {
 
 // ================= NEWS =================
 async function loadnews(topic, country, lang) {
+    speechSynthesis.cancel();
     const container = document.getElementById("news-container");
     container.innerHTML = "";
 
-    // Show skeleton loaders
+    // Skeleton loaders
     for (let i = 0; i < 4; i++) {
         const sk = document.createElement("div");
         sk.className = "news-card";
@@ -303,7 +295,6 @@ async function loadnews(topic, country, lang) {
     try {
         const res = await fetch(`/news?topic=${topic}&country=${country}&lang=${lang}`);
         const articles = await res.json();
-
         container.innerHTML = "";
 
         for (let article of articles) {
@@ -318,25 +309,106 @@ async function loadnews(topic, country, lang) {
                     <button class="summarize-btn">✦ Summarize</button>
                 </div>
                 <div class="summary"></div>
+                <div class="tts-controls" style="display:none;">
+                    <button class="listen-btn">🔊 Listen</button>
+                    <button class="stop-btn" disabled>🔇 Stop</button>
+                </div>
             `;
 
             const summarizeBtn = card.querySelector(".summarize-btn");
             const summaryBox = card.querySelector(".summary");
+            const ttsControls = card.querySelector(".tts-controls");
+            const listenBtn = card.querySelector(".listen-btn");
+            const stopBtn = card.querySelector(".stop-btn");
 
+            let isSpeaking = false;
+            let currentAudio = null;
+
+            // ---- Listen ----
+            listenBtn.addEventListener("click", async () => {
+                if (isSpeaking) return;
+                isSpeaking = true;
+                listenBtn.disabled = true;
+                stopBtn.disabled = false;
+
+                const summaryText = summaryBox.innerText;
+
+                // CASE 1: Local TTS if voice available
+                if (langsarr.includes(langmap[lang])) {
+                    const utterance = new SpeechSynthesisUtterance(summaryText);
+                    utterance.lang = langmap[lang];
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        listenBtn.disabled = false;
+                        stopBtn.disabled = true;
+                    };
+                    speechSynthesis.speak(utterance);
+                    return;
+                }
+
+                // CASE 2: External TTS
+                try {
+                    const ttsRes = await fetch("/tts", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ text: summaryText, voiceid: "JBFqnCBsd6RMkjVDRZzb" })
+                    });
+                    const audioBlob = await ttsRes.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    currentAudio = new Audio(audioUrl);
+                    currentAudio.onended = () => {
+                        isSpeaking = false;
+                        listenBtn.disabled = false;
+                        stopBtn.disabled = true;
+                        currentAudio = null;
+                    };
+                    currentAudio.play();
+                } catch (err) {
+                    console.error("External TTS failed:", err);
+                    isSpeaking = false;
+                    listenBtn.disabled = false;
+                    stopBtn.disabled = true;
+                }
+            });
+
+            // ---- Stop ----
+            stopBtn.addEventListener("click", () => {
+                speechSynthesis.cancel();
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                    currentAudio = null;
+                }
+                isSpeaking = false;
+                listenBtn.disabled = false;
+                stopBtn.disabled = true;
+            });
+
+            // ---- Summarize ----
             summarizeBtn.addEventListener("click", async () => {
+                // Stop any ongoing speech before new summary
+                speechSynthesis.cancel();
+                if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+                isSpeaking = false;
+
                 summarizeBtn.disabled = true;
                 summaryBox.innerText = "Summarizing...";
                 summaryBox.style.display = "block";
+                ttsControls.style.display = "none";
 
                 const res = await fetch("/ai", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ content: article.content || article.title })
                 });
-
                 const data = await res.json();
                 summaryBox.innerText = data.summary;
                 summarizeBtn.disabled = false;
+
+                // Show listen/stop after summary is ready
+                listenBtn.disabled = false;
+                stopBtn.disabled = true;
+                ttsControls.style.display = "flex";
             });
 
             container.appendChild(card);
@@ -350,5 +422,4 @@ async function loadnews(topic, country, lang) {
     }
 }
 
-// default load
 loadnews("breaking-news", "in", "en");
