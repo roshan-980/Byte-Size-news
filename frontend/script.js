@@ -1,4 +1,5 @@
 console.log("Script loaded");
+
 const news = document.getElementById("newsContainer");
 const modal = document.getElementById("authModal");
 const form = document.getElementById("authForm");
@@ -7,19 +8,28 @@ const subtitle = document.getElementById("formSubtitle");
 const button = form.querySelector("button");
 const btn = form.querySelector(".submit-btn");
 const toggleText = document.querySelector(".toggle-text");
-let currentStep = "form"; // "form" | "otp"
+const passwordRules = document.getElementById("passwordRules");  // fixed: was undeclared
+
+let currentStep = "form";
 let tempEmail = "";
 let tempPassword = "";
 let isLogin = false;
 
-// false = signup, true = login
-
-// Blur background on load
-window.addEventListener("load", () => {
-    news.classList.add("blur-bg");
+// ================= LOGIN MODAL =================
+document.getElementById("loginBtn").addEventListener("click", () => {
     modal.style.display = "flex";
+    news.classList.add("blur-bg");
 });
 
+// Close modal on overlay click
+modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+        modal.style.display = "none";
+        news.classList.remove("blur-bg");
+    }
+});
+
+// ================= PASSWORD VALIDATION =================
 const passwordInput = form.querySelector('input[type="password"]');
 const ruleLength = document.getElementById("rule-length");
 const ruleUpper = document.getElementById("rule-uppercase");
@@ -27,517 +37,318 @@ const ruleNumber = document.getElementById("rule-number");
 
 passwordInput.addEventListener("input", () => {
     if (isLogin) return;
+
     const str = passwordInput.value;
 
     const isLengthValid = str.length >= 8;
     const hasUppercase = /[A-Z]/.test(str);
     const hasNumber = /[0-9]/.test(str);
 
-    // Length UI
-    if (isLengthValid) {
-        ruleLength.textContent = "✔ At least 8 characters";
-        ruleLength.classList.add("valid");
-    } else {
-        ruleLength.textContent = "❌ At least 8 characters";
-        ruleLength.classList.remove("valid");
-    }
+    ruleLength.textContent = isLengthValid ? "✔ At least 8 characters" : "❌ At least 8 characters";
+    ruleUpper.textContent = hasUppercase ? "✔ One uppercase letter" : "❌ One uppercase letter";
+    ruleNumber.textContent = hasNumber ? "✔ One number" : "❌ One number";
 
-    // Uppercase UI
-    if (hasUppercase) {
-        ruleUpper.textContent = "✔ One uppercase letter";
-        ruleUpper.classList.add("valid");
-    } else {
-        ruleUpper.textContent = "❌ One uppercase letter";
-        ruleUpper.classList.remove("valid");
-    }
-
-    // Number UI
-    if (hasNumber) {
-        ruleNumber.textContent = "✔ One number";
-        ruleNumber.classList.add("valid");
-    } else {
-        ruleNumber.textContent = "❌ One number";
-        ruleNumber.classList.remove("valid");
-    }
+    ruleLength.classList.toggle("valid", isLengthValid);
+    ruleUpper.classList.toggle("valid", hasUppercase);
+    ruleNumber.classList.toggle("valid", hasNumber);
 });
 
+// ================= FORGOT PASSWORD =================
 function forgotPassword() {
-    // hide normal auth form
     document.getElementById("authForm").style.display = "none";
     document.getElementById("otpSection").style.display = "none";
-
-    // show forgot password section
     document.getElementById("forgotSection").style.display = "block";
 
-    // update title
-    document.getElementById("formTitle").innerText = "Reset Password";
-    document.getElementById("formSubtitle").innerText = "Enter your email to continue";
+    title.innerText = "Reset Password";
+    subtitle.innerText = "Enter your email to continue";
 }
+
 let temp = null;
 let isOtpVerified = false;
-// otp verfication
-document.getElementById("verifyOtp").addEventListener("click", async () => {
-    const otp = document.getElementById("otpInput").value.trim();
 
-    if (!otp) {
-        alert("Enter OTP");
-        return;
-    }
-
-    // verify OTP
-    const otp_response = await fetch("/otp/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: tempEmail, otp })
-    });
-
-    const otp_result = await otp_response.json();
-
-    if (!otp_response.ok) {
-        alert(otp_result.message || "OTP verification failed");
-        return;
-    }
-
-    // OTP SUCCESS → NOW SIGNUP
-    const response = await fetch("/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: tempEmail, password: tempPassword })
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-        alert(result.message);
-        modal.style.display = "none";
-        news.classList.remove("blur-bg");
-
-        currentStep = "form"; // reset
-    } else {
-        alert(result.message);
-    }
-    currentStep = "form";
-});
-
-// forgot password
-
-
-// Generate OTP
+// Generate OTP (forgot password)
 document.querySelector(".reset-password").addEventListener("click", async () => {
     const email = document.getElementById("resetEmail").value.trim();
     temp = email;
 
-    if (!email) {
-        alert("Enter email");
-        return;
-    }
+    if (!email) return alert("Enter email");
 
-    const gen_otp = await fetch("/otp/gen_forgetpw", {
+    const res = await fetch("/otp/gen_forgetpw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
     });
 
-    const gen_result = await gen_otp.json();
+    const data = await res.json();
 
-    if (!gen_otp.ok) {
-        alert(gen_result.message || "Failed to send OTP");
-        return;
-    }
+    if (!res.ok) return alert(data.message || "Failed");
 
     alert("OTP sent!");
     document.getElementById("fp-email").style.display = "none";
     document.getElementById("fp-otp").style.display = "block";
 });
 
-
-// Verify OTP
+// Verify OTP (forgot password)
 document.querySelector(".verify_otp").addEventListener("click", async () => {
-    if (!temp) {
-        alert("Please enter email and generate OTP first");
-        return;
-    }
+    if (!temp) return alert("Generate OTP first");
 
     const otp = document.getElementById("resetOtp").value.trim();
+    if (!otp) return alert("Enter OTP");
 
-    if (!otp) {
-        alert("Enter OTP");
-        return;
-    }
-
-    const otp_response = await fetch("/otp/verify", {
+    const res = await fetch("/otp/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: temp, otp })
     });
 
-    const otp_result = await otp_response.json();
+    const data = await res.json();
 
-    if (!otp_response.ok) {
-        alert(otp_result.message || "OTP verification failed");
-        return;
-    }
+    if (!res.ok) return alert(data.message);
 
     isOtpVerified = true;
     alert("OTP verified!");
+
     document.getElementById("fp-otp").style.display = "none";
     document.getElementById("fp-password").style.display = "block";
 });
 
-
-// Reset Password
+// Reset password
 document.querySelector(".reset_password").addEventListener("click", async () => {
-    if (!isOtpVerified) {
-        alert("Verify OTP first");
-        return;
-    }
+    if (!isOtpVerified) return alert("Verify OTP first");
 
     const newPassword = document.getElementById("newPassword").value.trim();
+    if (!newPassword) return alert("Enter password");
 
-    if (!newPassword) {
-        alert("Please enter new password");
-        return;
-    }
+    const valid = newPassword.length >= 8 && /[A-Z]/.test(newPassword) && /[0-9]/.test(newPassword);
+    if (!valid) return alert("Password must be strong (8+ chars, uppercase, number)");
 
-    const isLengthValid = newPassword.length >= 8;
-    const hasUppercase = /[A-Z]/.test(newPassword);
-    const hasNumber = /[0-9]/.test(newPassword);
-
-    if (!isLengthValid || !hasUppercase || !hasNumber) {
-        alert("Password must be 8+ chars, include uppercase & number");
-        return;
-    }
-
-    const response = await fetch("/auth/reset_password", {
+    const res = await fetch("/auth/reset_password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: temp, newPassword })
     });
 
-    const result = await response.json();
+    const data = await res.json();
 
-    if (!response.ok) {
-        alert(result.message || "Reset failed");
-        return;
-    }
+    if (!res.ok) return alert(data.message);
 
     alert("Password reset successful!");
-    window.location.href = "http://localhost:5000/";
+    location.reload();
 });
-// Toggle Login / Signup
+
+// ================= OTP VERIFY (SIGNUP) =================
+document.getElementById("verifyOtp").addEventListener("click", async () => {
+    const otp = document.getElementById("otpInput").value.trim();
+    if (!otp) return alert("Enter OTP");
+
+    const res = await fetch("/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: tempEmail, otp })
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data.message);
+
+    const signup = await fetch("/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: tempEmail, password: tempPassword })
+    });
+
+    const result = await signup.json();
+
+    if (signup.ok) {
+        alert(result.message);
+        modal.style.display = "none";
+        news.classList.remove("blur-bg");
+        currentStep = "form";
+    } else {
+        alert(result.message);
+    }
+});
+
+// ================= TOGGLE LOGIN/SIGNUP =================
 function toggleForm() {
     isLogin = !isLogin;
+
     document.getElementById("forgotSection").style.display = "none";
-    document.getElementById("fp-email").style.display = "block";
-    document.getElementById("fp-otp").style.display = "none";
-    document.getElementById("fp-password").style.display = "none";
     document.getElementById("authForm").style.display = "block";
+    document.getElementById("otpSection").style.display = "none";
+
     if (isLogin) {
         title.innerText = "Login";
-        subtitle.innerText = "Welcome back! Please login";
+        subtitle.innerText = "Welcome back!";
         button.innerText = "Login";
-        toggleText.innerHTML = `New here? <span onclick="toggleForm()">Create account</span>`;
+        toggleText.innerHTML = `New here? <span onclick="toggleForm()">Sign Up</span>`;
         passwordRules.style.display = "none";
         document.getElementById("forgotPassword").style.display = "block";
-        document.getElementById("otpSection").style.display = "none";
     } else {
         title.innerText = "Sign Up";
         subtitle.innerText = "Create your account to continue";
         button.innerText = "Sign Up";
         toggleText.innerHTML = `Already have an account? <span onclick="toggleForm()">Login</span>`;
-        passwordRules.style.display = "block";
+        passwordRules.style.display = "flex";
+        document.getElementById("forgotPassword").style.display = "none";
     }
 }
 
-// Form submit
+// ================= FORM SUBMIT =================
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = form.querySelector('input[type="email"]').value.trim();
-    const password = form.querySelector('input[type="password"]').value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-    // VALIDATION
-    if (!email || !password) {
-        alert("Please fill all fields");
+    if (!email || !password) return alert("Fill all fields");
+
+    btn.disabled = true;
+
+    if (isLogin) {
+        const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert(data.message);
+            modal.style.display = "none";
+            news.classList.remove("blur-bg");
+        } else {
+            alert(data.message);
+        }
+
+        btn.disabled = false;
         return;
     }
 
-    // DISABLE BUTTON AFTER VALIDATION
-    btn.disabled = true;
-    btn.innerText = isLogin ? "Logging in..." : "Sending OTP...";
+    // signup flow
+    tempEmail = email;
+    tempPassword = password;
 
-    try {
+    const res = await fetch("/otp/gen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+    });
 
-        // ================= LOGIN FLOW =================
-        if (isLogin) {
-            const response = await fetch("/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
-            });
+    const data = await res.json();
 
-            const result = await response.json();
-
-            if (response.ok) {
-                alert(result.message);
-                modal.style.display = "none";
-                news.classList.remove("blur-bg");
-
-                // optional safety reset
-                btn.disabled = false;
-                btn.innerText = "Login";
-            } else {
-                btn.disabled = false;
-                btn.innerText = "Login";
-                alert(result.message);
-            }
-
-            return;
-        }
-
-        // ================= SIGNUP FLOW =================
-
-        if (currentStep === "form") {
-
-            const isLengthValid = password.length >= 8;
-            const hasUppercase = /[A-Z]/.test(password);
-            const hasNumber = /[0-9]/.test(password);
-
-            if (!isLengthValid || !hasUppercase || !hasNumber) {
-                alert("Password does not meet requirements");
-                btn.disabled = false;
-                btn.innerText = "Sign Up";
-                return;
-            }
-
-            // store temporarily
-            tempEmail = email;
-            tempPassword = password;
-
-            const response = await fetch("/otp/gen", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email })
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                alert(result.message || "Failed to send OTP");
-                btn.disabled = false;
-                btn.innerText = "Sign Up";
-                return;
-            }
-
-            console.log("OTP generated and sent to email");
-
-            // SHOW OTP UI
-            document.getElementById("otpSection").style.display = "block";
-
-            // KEEP BUTTON DISABLED AFTER OTP (important)
-            btn.innerText = "OTP Sent";
-
-            currentStep = "otp";
-            return;
-        }
-
-    } catch (err) {
-        console.error(err);
-        alert("Something went wrong");
-
-        // ALWAYS RE-ENABLE ON ERROR
+    if (!res.ok) {
+        alert(data.message);
         btn.disabled = false;
-        btn.innerText = isLogin ? "Login" : "Sign Up";
+        return;
     }
+
+    document.getElementById("otpSection").style.display = "block";
+    btn.innerText = "OTP Sent ✓";
+    currentStep = "otp";
+    btn.disabled = false;
 });
 
+// ================= SEARCH =================
+const topicMap = {
+    tech: "technology",
+    technology: "technology",
+    sports: "sports",
+    business: "business",
+    health: "health",
+    science: "science",
+    world: "world",
+    news: "breaking-news"
+};
 
-let voices = [];
-let langsarr = [];
-function loadVoices() {
-    voices = speechSynthesis.getVoices();
-    console.log("Available voices:", voices);
+document.getElementById("searchBtn").addEventListener("click", () => {
+    speechSynthesis.cancel();
 
-    voices.forEach((voice, index) => {
-        console.log(
-            index,
-            voice.name,
-            voice.lang,
-            voice.localService ? "Local" : "Remote"
-        );
-    });
-    voices.forEach(voice => {
-        langsarr.push(voice.lang);
-    });
-    console.log(langsarr);
+    const input = document.getElementById("searchInput").value.toLowerCase().trim();
+    const topic = topicMap[input] || "breaking-news";
+    const lang = document.getElementById("Language").value || "en";
 
+    loadnews(topic, "in", lang);
+});
+
+document.getElementById("searchInput").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") document.getElementById("searchBtn").click();
+});
+
+// Quick chip search
+function quickSearch(topic) {
+    document.getElementById("searchInput").value = topic;
+    const lang = document.getElementById("Language").value || "en";
+    loadnews(topic, "in", lang);
 }
-// Chrome fires this when voices are ready
-speechSynthesis.onvoiceschanged = loadVoices;
 
-// i am in tts/feature branch 
+// ================= NEWS =================
 async function loadnews(topic, country, lang) {
-    console.log(" i am from loadnews function");
-    console.log("Topic:", topic, "Country:", country, "Language:", lang);
+    const container = document.getElementById("news-container");
+    container.innerHTML = "";
+
+    // Show skeleton loaders
+    for (let i = 0; i < 4; i++) {
+        const sk = document.createElement("div");
+        sk.className = "news-card";
+        sk.style.cssText = "animation: shimmer 1.5s infinite;";
+        sk.innerHTML = `
+            <div style="height:20px;background:var(--surface-3);border-radius:6px;margin-bottom:12px;width:75%;"></div>
+            <div style="height:14px;background:var(--surface-3);border-radius:6px;margin-bottom:8px;"></div>
+            <div style="height:14px;background:var(--surface-3);border-radius:6px;width:60%;"></div>
+        `;
+        container.appendChild(sk);
+    }
+
     try {
-        const getnews = await fetch(`/news?topic=${topic}&country=${country}&lang=${lang}`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            }
-        );
-        // doing lang check here !
-        let langmap = {
-            "en": "en-IN",
-            "hi": "hi-IN",
-            "mr": "mr-IN",
-            "pa": "pa-IN",
-        }
-        console.log("the langmap ", langmap[lang]);
-        const articles = await getnews.json();
-        console.log("success!");
-        console.log(articles);
-        const container = document.getElementById("news-container");
+        const res = await fetch(`/news?topic=${topic}&country=${country}&lang=${lang}`);
+        const articles = await res.json();
+
         container.innerHTML = "";
+
         for (let article of articles) {
             const card = document.createElement("div");
             card.className = "news-card";
+
             card.innerHTML = `
-        <h3>${article.title}</h3>
-        <p>${article.description || "No description available."}</p>
-        <p>${article.content || "No content available."}</p>
-        <a href="${article.url}" target="_blank">🔗 Read full</a>
-        <div class="buttons">
-          <button class="summarize-btn">📝 Summarize</button>
-          <button class="listen-btn" disabled>🔊 Listen</button>
-          <button class="stop-btn" disabled>🔇 Stop</button>
-        </div>
-        <div class="summary"></div>`;
+                <h3>${article.title}</h3>
+                <p>${article.description || ""}</p>
+                <div class="card-footer">
+                    <a href="${article.url}" target="_blank">Read more</a>
+                    <button class="summarize-btn">✦ Summarize</button>
+                </div>
+                <div class="summary"></div>
+            `;
 
             const summarizeBtn = card.querySelector(".summarize-btn");
-            const listenBtn = card.querySelector(".listen-btn");
-            const stopBtn = card.querySelector(".stop-btn");
             const summaryBox = card.querySelector(".summary");
-            // Summary feature
+
             summarizeBtn.addEventListener("click", async () => {
-                speechSynthesis.cancel();
-                summaryBox.innerHTML = " Summarizing... <br>Please wait.";
-                const contentToSummarize = article.content || article.description || article.title;
-                console.log("Content to summarize:", contentToSummarize);
-                console.log("Sending content for summary");
-                const summarizeddata = await fetch("/ai",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ content: contentToSummarize })
-                    });
-                const summaryResult = await summarizeddata.json();
-                console.log("Summary result:", summaryResult);
-                summaryBox.innerHTML = summaryResult.summary || "No summary available.";
-                //write code for listen and stop button    
-                let isSpeaking = false;
-                listenBtn.disabled = false;
-                stopBtn.disabled = true;
-                let currentAudio = null;
+                summarizeBtn.disabled = true;
+                summaryBox.innerText = "Summarizing...";
+                summaryBox.style.display = "block";
 
-                listenBtn.addEventListener("click", async () => {
-                    if (isSpeaking) return;
-                    isSpeaking = true;
-                    listenBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    // CASE 1: Local TTS
-                    if (langsarr.includes(langmap[lang])) {
-                        const utterance = new SpeechSynthesisUtterance(summaryResult.summary);
-                        utterance.lang = langmap[lang];
-                        utterance.onend = () => {
-                            isSpeaking = false;
-                            listenBtn.disabled = false;
-                            stopBtn.disabled = true;
-                        };
-                        speechSynthesis.speak(utterance);
-                    }
-                    // CASE 2: External TTS
-                    try {
-                        console.log("Using external TTS service");
-                        const res = await fetch("/tts", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                text: summaryResult.summary,
-                                voiceid: "JBFqnCBsd6RMkjVDRZzb"
-                            })
-                        });
-                        const audioBlob = await res.blob();
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        currentAudio = new Audio(audioUrl);
-                        currentAudio.onended = () => {
-                            isSpeaking = false;
-                            listenBtn.disabled = false;
-                            stopBtn.disabled = true;
-                            currentAudio = null;
-                        };
-
-                        currentAudio.play();
-
-                    } catch (err) {
-                        console.error("External TTS failed:", err);
-                        isSpeaking = false;
-                        listenBtn.disabled = false;
-                        stopBtn.disabled = true;
-                    }
+                const res = await fetch("/ai", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ content: article.content || article.title })
                 });
 
-                stopBtn.addEventListener("click", () => {
-                    if (!isSpeaking) return;
-                    // Stop local TTS
-                    speechSynthesis.cancel();
-                    // Stop external TTS
-                    if (currentAudio) {
-                        currentAudio.pause();
-                        currentAudio.currentTime = 0;
-                        currentAudio = null;
-                    }
-                    isSpeaking = false;
-                    listenBtn.disabled = false;
-                    stopBtn.disabled = true;
-                });
-
-
+                const data = await res.json();
+                summaryBox.innerText = data.summary;
+                summarizeBtn.disabled = false;
             });
-            container.append(card);
 
+            container.appendChild(card);
         }
 
-    } catch (error) {
-        console.error("Error fetching news:", error);
+    } catch (err) {
+        container.innerHTML = `<div class="news-card" style="text-align:center;color:var(--ink-soft);padding:40px;">
+            <p style="font-size:15px;">Could not load news. Please try again.</p>
+        </div>`;
+        console.error(err);
     }
 }
-// auto calls for the first time when page loads
-async function fetchNews() {
-    console.log(" i am from fetchNews function");
-    speechSynthesis.cancel();
-    const topic = document.getElementById("topic").value || "general";
-    const country = document.getElementById("country").value || "in"
-    const lang = document.getElementById("Language").value || "en";
-    console.log("Topic:", topic, "Country:", country, "Language:", lang);
-    loadnews(topic, country, lang);
-}
-// calls when user clicks the fetch button
-document.getElementById("fetchNews").addEventListener("click", () => {
-    speechSynthesis.cancel();
-    const topic = document.getElementById("topic").value || "general";
-    const country = document.getElementById("country").value || "in"
-    const lang = document.getElementById("Language").value || "en";
-    console.log("Topic:", topic, "Country:", country, "Language:", lang);
-    loadnews(topic, country, lang);
 
-})
-fetchNews();
-
-
-
-
+// default load
+loadnews("breaking-news", "in", "en");

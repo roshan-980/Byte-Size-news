@@ -1,65 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> ByteSize News</title>
+  <title>ByteSize News</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <!-- Signup / Login Modal -->
+
+  <!-- ================= AUTH MODAL ================= -->
   <div class="auth-modal" id="authModal">
     <div class="auth-box">
 
+      <div class="auth-mark">📰</div>
+
       <h2 id="formTitle">Sign Up</h2>
-      <p class="form-subtitle" id="formSubtitle">
-        Create your account to continue
-      </p>
+      <p class="form-subtitle" id="formSubtitle">Create your account to continue</p>
 
       <form id="authForm">
         <input type="email" id="email" placeholder="Email address" required>
         <input type="password" id="password" placeholder="Password" required>
-        <ul id="passwordRules" style="text-align:left; font-size:14px; margin-bottom:10px;">
+
+        <ul id="passwordRules">
           <li id="rule-length">❌ At least 8 characters</li>
           <li id="rule-uppercase">❌ One uppercase letter</li>
           <li id="rule-number">❌ One number</li>
         </ul>
+
         <button class="submit-btn" type="submit">Sign Up</button>
       </form>
+
       <div id="otpSection" style="display:none;">
-        <input type="text" id="otpInput" placeholder="Enter OTP" required>
-        <button id="verifyOtp">Verify OTP</button>
+        <p class="otp-hint">📬 Check your inbox for the OTP</p>
+        <input type="text" id="otpInput" placeholder="Enter 6-digit OTP">
+        <button id="verifyOtp">Verify &amp; Create Account</button>
       </div>
+
+      <!-- FORGOT PASSWORD -->
       <div id="forgotSection" style="display:none;">
 
-        <!-- Step 1: Email -->
         <div id="fp-email">
           <input type="email" id="resetEmail" placeholder="Enter your email">
           <button class="reset-password">Send OTP</button>
         </div>
 
-        <!-- Step 2: OTP -->
         <div id="fp-otp" style="display:none;">
+          <p class="otp-hint">📬 Enter the OTP sent to your email</p>
           <input type="text" id="resetOtp" placeholder="Enter OTP">
           <button class="verify_otp">Verify OTP</button>
         </div>
 
-        <!-- Step 3: New Password -->
         <div id="fp-password" style="display:none;">
-          <input type="password" id="newPassword" placeholder="New Password">
+          <input type="password" id="newPassword" placeholder="New password">
           <button class="reset_password">Reset Password</button>
         </div>
 
       </div>
-      <!-- TOGGLE TEXT -->
+
       <p class="toggle-text">
         Already have an account?
         <span onclick="toggleForm()">Login</span>
       </p>
 
-      <p id="forgotPassword" onclick="forgotPassword()" style="display:none; cursor:pointer; font-size:14px;">
+      <p id="forgotPassword" onclick="forgotPassword()" style="display:none; cursor:pointer;">
         Forgot Password?
       </p>
 
@@ -67,65 +70,51 @@
   </div>
 
 
+  <!-- ================= MAIN APP ================= -->
   <div id="newsContainer">
-    <header>
-      <h1>🗞️ ByteSize News</h1>
-      <p>Smart, Summarized & Spoken News</p>
+
+    <header class="navbar">
+      <div class="nav-left">
+        <button id="menuBtn">☰</button>
+        <h2>Byte<span class="accent">Size</span> News</h2>
+      </div>
+
+      <div class="nav-right">
+        <select id="Language">
+          <option value="en">EN</option>
+          <option value="hi">HI</option>
+          <option value="mr">MR</option>
+          <option value="pa">PA</option>
+        </select>
+        <button id="loginBtn">Login</button>
+      </div>
     </header>
 
-    <section class="controls">
-      <div class="control-group">
-        <label for="topic">📰 Topic:</label>
-        <select id="topic">
-          <option value="" disabled selected>-- Select Topic --</option>
-          <option value="breaking-news">breaking-news</option>
-          <option value="world">world</option>
-          <option value="technology">Technology</option>
-          <option value="entertainment">entertainment</option>
-          <option value="sports">Sports</option>
-          <option value="business">Business</option>
-          <option value="health">Health</option>
-          <option value="science">Science</option>
-          <option value="world">World</option>
-          <!-- breaking-news, world, nation, business, technology, entertainment, sports, science, health -->
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label for="country">🌍 Country:</label>
-        <select id="country">
-          <option value="" disabled hidden>-- Select Country --</option>
-          <option value="us">🇺🇸 USA</option>
-          <option value="in">🇮🇳 India</option>
-          <option value="gb">🇬🇧 UK</option>
-          <option value="au">🇦🇺 Australia</option>
-          <option value="ca">🇨🇦 Canada</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label for="Language">🌍 Language:</label>
-        <select id="Language">
-          <option value="en">English</option>
-          <option value="hi">Hindi</option>
-          <option value="mr">Marathi</option>
-          <option value="pa">Punjabi</option>
-        </select>
-      </div>
-
-      <button id="fetchNews">🔍 Get News</button>
+    <section class="search-section">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search news (tech, sports, business...)"
+      />
+      <button id="searchBtn">🔍</button>
     </section>
 
-    <main id="news-container">
-      <!-- News cards will appear here -->
-    </main>
+    <div class="search-chips">
+      <span class="chip" onclick="quickSearch('technology')">💻 Tech</span>
+      <span class="chip" onclick="quickSearch('sports')">⚽ Sports</span>
+      <span class="chip" onclick="quickSearch('business')">📈 Business</span>
+      <span class="chip" onclick="quickSearch('health')">🏥 Health</span>
+      <span class="chip" onclick="quickSearch('science')">🔬 Science</span>
+    </div>
+
+    <main id="news-container"></main>
 
     <footer>
       <p>© 2025 ByteSize News by Roshan Gupta</p>
     </footer>
 
   </div>
+
   <script src="script.js" defer></script>
 </body>
-
 </html>
