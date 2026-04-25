@@ -9,9 +9,7 @@ const cookieParser = require('cookie-parser');
 const app = express();
 app.use(cookieParser());
 app.use(express.json());
-console.log("API Key for gmail : " + process.env.OTP_SEND_API_KEY);
 
-console.log("from otp file");
 router.post('/gen', async (req, res) => {
     const { email } = req.body;
     await Otpdata.deleteMany({ email });
@@ -26,8 +24,6 @@ router.post('/gen', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(otp.toString(), salt);
         await Otpdata.create({ email, otp: hash });
-        console.log("Generated OTP for ", email, " is ", otp);
-        console.log("API Key for gmail : " + process.env.OTP_SEND_API_KEY);
         let transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -45,16 +41,13 @@ router.post('/gen', async (req, res) => {
 
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
-                console.log(error);
                 return res.status(500).json({ message: "Error sending OTP email" });
             } else {
-                console.log('Email sent: ' + info.response);
                 return res.status(200).json({ message: "OTP sent successfully" });
             }
         });
     }
     catch (err) {
-        console.error("Error generating OTP: ", err);
         res.status(500).json({ message: "Error generating OTP" });
     }
 
@@ -73,8 +66,6 @@ router.post('/gen_forgetpw', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(otp.toString(), salt);
         await Otpdata.create({ email, otp: hash });
-        console.log("Generated OTP for ", email, " is ", otp);
-        console.log("API Key for gmail : " + process.env.OTP_SEND_API_KEY);
         let transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -92,16 +83,13 @@ router.post('/gen_forgetpw', async (req, res) => {
 
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
-                console.log(error);
                 return res.status(500).json({ message: "Error sending OTP email" });
             } else {
-                console.log('Email sent: ' + info.response);
                 return res.status(200).json({ message: "OTP sent successfully" });
             }
         });
     }
     catch (err) {
-        console.error("Error generating OTP: ", err);
         res.status(500).json({ message: "Error generating OTP" });
     }
 
@@ -117,9 +105,11 @@ router.post('/verify', async (req, res) => {
 
     if (isMatch) {
         const token = jwt.sign({ email: email }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
-        res.cookie("token", token, { httpOnly: true });
-        console.log("Generated JWT token: ", token);
-        console.log(req.cookies);
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,        
+            sameSite: "None"     
+        });
         await Otpdata.deleteOne({ email });
         return res.status(200).json({ message: "OTP verification successful" });
     } else {

@@ -1,14 +1,11 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
-const router = express.Router()
-
+const router = express.Router();
 const User = require("../model/bytesizedata.js");
 const Otpdata = require("../model/otpdata.js");
 const bcrypt = require("bcrypt");
 
-
-console.log("from the save feature file");
 function verifytoken(req, res, next) {
     const token = req.cookies.token;
 
@@ -29,7 +26,6 @@ function verifytoken(req, res, next) {
     }
 }
 router.post('/save_article', verifytoken, async (req, res) => {
-    console.log("save article endpoint hit");
     const user = await User.findOne({ email: req.email });
     if(!user) {
         return res.status(404).json({ message: "User not found" });
@@ -41,11 +37,9 @@ router.post('/save_article', verifytoken, async (req, res) => {
     }
     user.savedArticles.push({ title, url, description });
     await user.save();
-    console.log("Article saved for user: ", req.email);
     return res.status(200).json({ message: "Saved successfully" });
 });
 router.get('/saved_articles', verifytoken, async (req, res) => {
-    console.log("get saved articles endpoint hit");
     const useremail = req.email;
     const user = await User.findOne({ email: useremail });
     if (!user) {

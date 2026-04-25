@@ -5,7 +5,6 @@ const { ElevenLabsClient, play } = require('@elevenlabs/elevenlabs-js');
 const elevenlabs = new ElevenLabsClient({
   apiKey: process.env.ELEVENLABS_API_KEY
 });
-console.log(" TTS route file loaded");
 router.post('/', async (req, res) => {
   try {
     const { text, voiceid } = req.body;
@@ -37,7 +36,6 @@ router.post('/', async (req, res) => {
     res.send(audioBuffer);
 
   } catch (err) {
-    console.error("External TTS error:", err);
     res.status(500).json({ error: "External TTS failed" });
   }
 })

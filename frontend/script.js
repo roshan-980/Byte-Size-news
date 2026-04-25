@@ -1,4 +1,3 @@
-console.log("Script loaded");
 
 const news = document.getElementById("newsContainer");
 const modal = document.getElementById("authModal");
@@ -181,25 +180,26 @@ async function loadDashboard() {
                 <div class="dash-empty-icon">⚠️</div>
                 <p>Something went wrong.</p>
             </div>`;
-        console.error(err);
     }
 }
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
     const res = await fetch("/auth/logout", {
+        credentials: "include",
         method: "POST",
         credentials: "include"
     });
     if (!res.ok) {
         return alert("Logout failed");
     }
-    alert("Logged out Successfully!");
+    // alert("Logged out Successfully!");
     location.reload();
 });
 
 function closeModal() {
     modal.style.display = "none";
     news.classList.remove("blur-bg");
+    location.reload();
     resetModal();
 }
 
@@ -246,23 +246,31 @@ function forgotPassword() {
     title.innerText = "Reset Password";
     subtitle.innerText = "Enter your email to continue";
 }
-
-document.querySelector(".reset-password").addEventListener("click", async () => {
+const btn1 = document.querySelector(".reset-password");
+btn1.addEventListener("click", async () => {
     const email = document.getElementById("resetEmail").value.trim();
     temp = email;
     if (!email) return alert("Enter email");
-
-    const res = await fetch("/otp/gen_forgetpw", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (!res.ok) return alert(data.message || "Failed");
-
-    alert("OTP sent!");
-    document.getElementById("fp-email").style.display = "none";
-    document.getElementById("fp-otp").style.display = "block";
+    btn1.disabled = true;
+    btn1.innerText = "Sending...";
+    try {
+        const res = await fetch("/otp/gen_forgetpw", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            btn1.disabled = false;
+            btn1.innerText = "Send OTP";
+            return alert(data.message || "Failed");
+        }
+        document.getElementById("fp-email").style.display = "none";
+        document.getElementById("fp-otp").style.display = "block";
+    } catch (err) {
+        btn1.disabled = false;
+        btn1.innerText = "Send OTP";
+    }
 });
 
 document.querySelector(".verify_otp").addEventListener("click", async () => {
@@ -279,7 +287,7 @@ document.querySelector(".verify_otp").addEventListener("click", async () => {
     if (!res.ok) return alert(data.message);
 
     isOtpVerified = true;
-    alert("OTP verified!");
+    // alert("OTP verified!");
     document.getElementById("fp-otp").style.display = "none";
     document.getElementById("fp-password").style.display = "block";
 });
@@ -325,7 +333,7 @@ document.getElementById("verifyOtp").addEventListener("click", async () => {
     const result = await signup.json();
 
     if (signup.ok) {
-        alert(result.message);
+        // alert(result.message);
         closeModal();
     } else {
         alert(result.message);
@@ -375,7 +383,7 @@ form.addEventListener("submit", async (e) => {
         });
         const data = await res.json();
         if (res.ok) {
-            alert(data.message);
+            // alert(data.message);
             closeModal();
         } else {
             alert(data.message);
@@ -496,13 +504,13 @@ async function loadnews(topic, country, lang) {
             const saveBtn = card.querySelector(".save_btn");
             saveBtn.addEventListener("click", async () => {
                 const res = await fetch("/save/save_article", {
+                    credentials: "include",
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ title: article.title, description: article.description, url: article.url })
                 });
                 if (res.ok) {
                     saveBtn.classList.add("saved");
-                    alert("Article saved!");
                 } else {
                     alert("Failed to save article.");
                 }
@@ -552,7 +560,6 @@ async function loadnews(topic, country, lang) {
                     };
                     currentAudio.play();
                 } catch (err) {
-                    console.error("External TTS failed:", err);
                     isSpeaking = false;
                     listenBtn.disabled = false;
                     stopBtn.disabled = true;
@@ -606,7 +613,6 @@ async function loadnews(topic, country, lang) {
         container.innerHTML = `<div class="news-card" style="text-align:center;color:var(--ink-soft);padding:40px;">
             <p style="font-size:15px;">Could not load news. Please try again.</p>
         </div>`;
-        console.error(err);
     }
 }
 

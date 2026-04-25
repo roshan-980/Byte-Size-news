@@ -9,10 +9,9 @@ app.use(cookieParser());
 const mongoose = require("mongoose");
 async function connectDB() {
   try {
-    await mongoose.connect("mongodb://localhost:27017/ByteSizeDB");
-    console.log("MongoDB connected");
+    await mongoose.connect(process.env.MONGODB_URL);
   } catch (err) {
-    console.error("MongoDB connection failed", err);
+    console.error("Error connecting to MongoDB: ", err);
   }
 }
 
@@ -30,14 +29,10 @@ app.use('/ai', airoute);
 app.use('/tts', ttsroute);
 app.use('/otp', otproute);
 app.use('/save', savefeatureroute);
-const port = 5000;
-console.log("  I AM FROM THE MAIN.JS FILE ! News API Key:", process.env.NEWS_API_KEY);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 })
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+app.listen(process.env.port, () => {})
 

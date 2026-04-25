@@ -1,10 +1,7 @@
 const express = require("express");
 const router = express.Router();
-console.log(" AI route file loaded");
-console.log(" i am  from ai file  Cohere API Key:", process.env.COHERE_API_KEY);
 router.post("/", (req, res) => {
   const content = req.body.content
-  console.log("Content to summarize:", content);
   const { CohereClientV2 } = require('cohere-ai');
   const cohere = new CohereClientV2({
     token: process.env.COHERE_API_KEY,
@@ -19,8 +16,8 @@ router.post("/", (req, res) => {
         },
       ],
     });
-    console.log("Cohere response:", response);
-    console.log("summary is  " + response.message.content[0].text);
+    // console.log("Cohere response:", response);
+    // console.log("summary is  " + response.message.content[0].text);
     res.json({ summary: response.message.content[0].text });
   })();
 
