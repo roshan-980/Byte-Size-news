@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ByteSize News</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
   <!-- ================= AUTH MODAL ================= -->
@@ -72,12 +74,45 @@
   </div>
 
 
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="dashboard hidden">
+
+  <div class="dash-brand">
+    <div class="dash-brand-left">
+      <div class="dash-brand-icon">📰</div>
+      <h3>ByteSize</h3>
+    </div>
+    <button class="dash-close" onclick="closeDashboard()">✕</button>
+  </div>
+
+  <div id="dashboardMessage"></div>
+
+  <div id="dashboardContent" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+    <div class="dash-user">
+      <div class="dash-avatar">👤</div>
+      <div class="dash-user-info">
+        <div class="dash-user-label">Signed in as</div>
+        <div id="userEmail">loading...</div>
+      </div>
+    </div>
+    <div class="dash-section-title">Saved Articles</div>
+    <div class="dash-body">
+      <div id="savedArticles"></div>
+    </div>
+    <div class="dash-footer">
+      <button id="logoutBtn">🚪 Logout</button>
+    </div>
+  </div>
+
+</div>
   <!-- ================= MAIN APP ================= -->
+   <div class="dashboard-overlay" id="dashboardOverlay" onclick="closeDashboard()"></div>
   <div id="newsContainer">
 
     <header class="navbar">
       <div class="nav-left">
-        <button id="menuBtn">☰</button>
+        <button id="menuBtn" onclick="hamburger()">☰</button>
         <h2>Byte<span class="accent">Size</span> News</h2>
       </div>
 
@@ -93,11 +128,7 @@
     </header>
 
     <section class="search-section">
-      <input
-        type="text"
-        id="searchInput"
-        placeholder="Search news (tech, sports, business...)"
-      />
+      <input type="text" id="searchInput" placeholder="Search news (tech, sports, business...)" />
       <button id="searchBtn">🔍</button>
     </section>
 
@@ -119,4 +150,5 @@
 
   <script src="script.js" defer></script>
 </body>
+
 </html>

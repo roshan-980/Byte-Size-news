@@ -44,5 +44,14 @@ router.post('/save_article', verifytoken, async (req, res) => {
     console.log("Article saved for user: ", req.email);
     return res.status(200).json({ message: "Saved successfully" });
 });
+router.get('/saved_articles', verifytoken, async (req, res) => {
+    console.log("get saved articles endpoint hit");
+    const useremail = req.email;
+    const user = await User.findOne({ email: useremail });
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json(user.savedArticles);
+});
 
 module.exports = router;

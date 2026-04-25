@@ -77,6 +77,126 @@ function resetModal() {
     document.getElementById("forgotPassword").style.display = "none";
 }
 
+// ================= DASHBOARD =================
+async function hamburger() {
+    const dashboard = document.getElementById("dashboard");
+    const overlay   = document.getElementById("dashboardOverlay");
+    const isHidden  = dashboard.classList.contains("hidden");
+
+    if (!isHidden) { closeDashboard(); return; }
+
+    dashboard.classList.remove("hidden");
+    overlay.classList.add("visible");
+
+    const messageBox = document.getElementById("dashboardMessage");
+    const contentBox = document.getElementById("dashboardContent");
+
+    messageBox.innerHTML = "";
+    contentBox.style.display = "none";
+
+    const res = await fetch("/auth/verifytoken", { credentials: "include" });
+
+    if (!res.ok) {
+        messageBox.innerHTML = `
+            <div class="dash-login-prompt">
+                <div class="prompt-icon">🔒</div>
+                <h4>Login Required</h4>
+                <p>Sign in to access your dashboard and saved articles.</p>
+                <button class="dash-login-btn" id="dashLoginBtn">Login / Sign Up</button>
+            </div>`;
+        document.getElementById("dashLoginBtn").onclick = () => {
+            closeDashboard();
+            modal.style.display = "flex";
+            news.classList.add("blur-bg");
+        };
+        return;
+    }
+
+    contentBox.style.display = "flex";
+    loadDashboard();
+}
+
+function closeDashboard() {
+    document.getElementById("dashboard").classList.add("hidden");
+    document.getElementById("dashboardOverlay").classList.remove("visible");
+}
+
+async function loadDashboard() {
+    const savedContainer = document.getElementById("savedArticles");
+    const emailEl        = document.getElementById("userEmail");
+
+    // Skeleton loaders while fetching
+    savedContainer.innerHTML = [1, 2, 3].map(() => `
+        <div class="dash-skeleton">
+            <div class="dash-skel-line" style="width:85%"></div>
+            <div class="dash-skel-line" style="width:55%"></div>
+        </div>`).join("");
+
+    try {
+        const profileRes = await fetch("/auth/me", { credentials: "include" });
+        if (profileRes.ok) {
+            const profile = await profileRes.json();
+            emailEl.textContent = profile.email || "—";
+        }
+    } catch (_) { emailEl.textContent = "—"; }
+
+    try {
+        const res = await fetch("/save/saved_articles", { credentials: "include" });
+
+        if (!res.ok) {
+            savedContainer.innerHTML = `
+                <div class="dash-empty">
+                    <div class="dash-empty-icon">⚠️</div>
+                    <p>Could not load saved articles.</p>
+                </div>`;
+            return;
+        }
+
+        const data = await res.json();
+        savedContainer.innerHTML = "";
+
+        if (!data.length) {
+            savedContainer.innerHTML = `
+                <div class="dash-empty">
+                    <div class="dash-empty-icon">📭</div>
+                    <p>No saved articles yet.<br>Bookmark articles to see them here.</p>
+                </div>`;
+            return;
+        }
+
+        data.forEach(article => {
+            const a = document.createElement("a");
+            a.className = "saved-item";
+            a.href      = article.url || "#";
+            a.target    = "_blank";
+            a.innerHTML = `
+                <div class="saved-dot"></div>
+                <div class="saved-item-text">${article.title}</div>`;
+            savedContainer.appendChild(a);
+        });
+
+    } catch (err) {
+        savedContainer.innerHTML = `
+            <div class="dash-empty">
+                <div class="dash-empty-icon">⚠️</div>
+                <p>Something went wrong.</p>
+            </div>`;
+        console.error(err);
+    }
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+   const res =  await fetch("/auth/logout", {
+        method: "POST",
+        credentials: "include"
+    });
+    if(!res.ok) {
+        return alert("Logout failed");
+    }
+    alert("Logged out Successfully!");
+    location.reload();
+});
+
 function closeModal() {
     modal.style.display = "none";
     news.classList.remove("blur-bg");
@@ -370,17 +490,17 @@ async function loadnews(topic, country, lang) {
             const stopBtn = card.querySelector(".stop-btn");
 
             const saveBtn = card.querySelector(".save_btn");
-            saveBtn.addEventListener("click", async() => {
+            saveBtn.addEventListener("click", async () => {
                 saveBtn.style.background = "var(--ink-faint)";
                 const res = await fetch("/save/save_article", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ title: article.title, description: article.description, url: article.url })
                 });
-                if(res.ok) {
+                if (res.ok) {
                     alert("Article saved!");
-                } else {                
-                        alert("Failed to save article.");
+                } else {
+                    alert("Failed to save article.");
                 }
 
             });
