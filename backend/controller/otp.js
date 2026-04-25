@@ -4,7 +4,10 @@ const router = express.Router()
 const User = require("../model/bytesizedata.js");
 const Otpdata = require("../model/otpdata.js");
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const app = express();
+app.use(cookieParser());
 app.use(express.json());
 console.log("API Key for gmail : " + process.env.OTP_SEND_API_KEY);
 
@@ -113,6 +116,10 @@ router.post('/verify', async (req, res) => {
     const isMatch = await bcrypt.compare(otp, verify_email.otp);
 
     if (isMatch) {
+        const token = jwt.sign({ email: email }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+        res.cookie("token", token, { httpOnly: true });
+        console.log("Generated JWT token: ", token);
+        console.log(req.cookies);
         await Otpdata.deleteOne({ email });
         return res.status(200).json({ message: "OTP verification successful" });
     } else {

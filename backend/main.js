@@ -4,7 +4,8 @@ app.use(express.json());
 const dotenv = require('dotenv').config()
 const path =require("path");
 app.use(express.static(path.join(__dirname, "../frontend")));
-
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 const mongoose = require("mongoose");
 async function connectDB() {
   try {
@@ -22,11 +23,13 @@ const authroute = require('./controller/auth.js')
 const airoute = require('./controller/ai.js')
 const ttsroute = require('./controller/tts.js')
 const otproute = require('./controller/otp.js')
+const savefeatureroute  = require('./controller/savefeature.js');
 app.use('/news', newsroute)
 app.use('/auth', authroute);
 app.use('/ai', airoute);
 app.use('/tts', ttsroute);
 app.use('/otp', otproute);
+app.use('/save', savefeatureroute);
 const port = 5000;
 console.log("  I AM FROM THE MAIN.JS FILE ! News API Key:", process.env.NEWS_API_KEY);
 

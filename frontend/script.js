@@ -316,6 +316,8 @@ function quickSearch(topic) {
     loadnews(topic, "in", lang);
 }
 
+
+
 // ================= NEWS =================
 async function loadnews(topic, country, lang) {
     speechSynthesis.cancel();
@@ -349,7 +351,10 @@ async function loadnews(topic, country, lang) {
                 <p>${article.description || ""}</p>
                 <div class="card-footer">
                     <a href="${article.url}" target="_blank">Read more</a>
-                    <button class="summarize-btn">✦ Summarize</button>
+                    <div>
+                        <button class="summarize-btn">✦ Summarize</button>
+                        <button class="save_btn" style = "background: var(--surface); border: none; padding: 10px 20px; cursor: pointer;">Save</button>
+                    </div>
                 </div>
                 <div class="summary"></div>
                 <div class="tts-controls" style="display:none;">
@@ -363,6 +368,22 @@ async function loadnews(topic, country, lang) {
             const ttsControls = card.querySelector(".tts-controls");
             const listenBtn = card.querySelector(".listen-btn");
             const stopBtn = card.querySelector(".stop-btn");
+
+            const saveBtn = card.querySelector(".save_btn");
+            saveBtn.addEventListener("click", async() => {
+                saveBtn.style.background = "var(--ink-faint)";
+                const res = await fetch("/save/save_article", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title: article.title, description: article.description, url: article.url })
+                });
+                if(res.ok) {
+                    alert("Article saved!");
+                } else {                
+                        alert("Failed to save article.");
+                }
+
+            });
 
             let isSpeaking = false;
             let currentAudio = null;

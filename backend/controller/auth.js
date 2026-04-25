@@ -1,12 +1,14 @@
 const express =require('express');
 const jwt = require('jsonwebtoken');
-// const cookieParser = require ('cookie-parser');
 const router = express.Router()
 const  User = require("../model/bytesizedata.js"); 
 const bcrypt = require("bcrypt");
+const cookieParser = require('cookie-parser');
 const app = express();
+app.use(cookieParser());
 app.use(express.json());
 console.log(" Auth route file loaded");
+console.log("JWT Secret Key: ", process.env.JWT_SECRET_KEY);
 // define the home page route
 router.post('/login', async(req, res) => {
      console.log("Login endpoint hit");
@@ -19,6 +21,9 @@ router.post('/login', async(req, res) => {
     bcrypt.compare(password, response.password, function (err, result) {
         if (result) {
             console.log("Login successful");
+            const token = jwt.sign({ email: email }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+            res.cookie("token", token, { httpOnly: true });
+            console.log("Generated JWT token: ", token);
             res.status(200).json({ message: "Login successful" });
         } else {
             res.status(401).json({ message: "Invalid credentials" });
