@@ -612,6 +612,38 @@ footer {
   overflow: hidden;
 }
 
+.save_btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-faint);
+  border-radius: var(--radius-sm);
+  transition: color var(--t), transform var(--t);
+}
+
+.save_btn:hover {
+  color: var(--accent);
+  transform: scale(1.1);
+}
+
+.save_btn.saved {
+  color: var(--accent);
+}
+
+.save_btn.saved .save-icon path {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.save-icon {
+  width: 20px;
+  height: 20px;
+  transition: fill var(--t), stroke var(--t);
+}
 .dash-empty {
   display: flex;
   flex-direction: column;

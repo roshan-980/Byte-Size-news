@@ -80,8 +80,8 @@ function resetModal() {
 // ================= DASHBOARD =================
 async function hamburger() {
     const dashboard = document.getElementById("dashboard");
-    const overlay   = document.getElementById("dashboardOverlay");
-    const isHidden  = dashboard.classList.contains("hidden");
+    const overlay = document.getElementById("dashboardOverlay");
+    const isHidden = dashboard.classList.contains("hidden");
 
     if (!isHidden) { closeDashboard(); return; }
 
@@ -123,7 +123,7 @@ function closeDashboard() {
 
 async function loadDashboard() {
     const savedContainer = document.getElementById("savedArticles");
-    const emailEl        = document.getElementById("userEmail");
+    const emailEl = document.getElementById("userEmail");
 
     // Skeleton loaders while fetching
     savedContainer.innerHTML = [1, 2, 3].map(() => `
@@ -167,8 +167,8 @@ async function loadDashboard() {
         data.forEach(article => {
             const a = document.createElement("a");
             a.className = "saved-item";
-            a.href      = article.url || "#";
-            a.target    = "_blank";
+            a.href = article.url || "#";
+            a.target = "_blank";
             a.innerHTML = `
                 <div class="saved-dot"></div>
                 <div class="saved-item-text">${article.title}</div>`;
@@ -186,11 +186,11 @@ async function loadDashboard() {
 }
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
-   const res =  await fetch("/auth/logout", {
+    const res = await fetch("/auth/logout", {
         method: "POST",
         credentials: "include"
     });
-    if(!res.ok) {
+    if (!res.ok) {
         return alert("Logout failed");
     }
     alert("Logged out Successfully!");
@@ -471,9 +471,13 @@ async function loadnews(topic, country, lang) {
                 <p>${article.description || ""}</p>
                 <div class="card-footer">
                     <a href="${article.url}" target="_blank">Read more</a>
-                    <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
                         <button class="summarize-btn">✦ Summarize</button>
-                        <button class="save_btn" style = "background: var(--surface); border: none; padding: 10px 20px; cursor: pointer;">Save</button>
+                       <button class="save_btn" title="Save article">
+  <svg class="save-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 3h14a1 1 0 0 1 1 1v17l-8-4-8 4V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  </svg>
+</button>
                     </div>
                 </div>
                 <div class="summary"></div>
@@ -491,13 +495,13 @@ async function loadnews(topic, country, lang) {
 
             const saveBtn = card.querySelector(".save_btn");
             saveBtn.addEventListener("click", async () => {
-                saveBtn.style.background = "var(--ink-faint)";
                 const res = await fetch("/save/save_article", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ title: article.title, description: article.description, url: article.url })
                 });
                 if (res.ok) {
+                    saveBtn.classList.add("saved");
                     alert("Article saved!");
                 } else {
                     alert("Failed to save article.");
